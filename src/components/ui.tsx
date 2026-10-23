@@ -1,20 +1,39 @@
-import { motion, type HTMLMotionProps } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import type { ReactNode } from 'react'
+import { useLayoutEffect, useRef, type ReactNode } from 'react'
 import { cx } from '../lib/utils'
 
-export function Reveal({ children, delay = 0, className, ...rest }: HTMLMotionProps<'div'> & { delay?: number }) {
+// Un seul IntersectionObserver partagé + transition CSS : bien plus léger
+// que d'animer chaque bloc en JavaScript.
+let observer: IntersectionObserver | null = null
+const getObserver = () =>
+  (observer ??= new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue
+        e.target.classList.add('in')
+        observer!.unobserve(e.target)
+      }
+    },
+    { rootMargin: '0px 0px -40px 0px' },
+  ))
+
+export function Reveal({ children, delay = 0, className }: { children: ReactNode; delay?: number; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const el = ref.current!
+    // déjà à l'écran au montage : affiché tout de suite, sans attendre
+    if (el.getBoundingClientRect().top < window.innerHeight) {
+      el.classList.add('in', 'now')
+      return
+    }
+    const obs = getObserver()
+    obs.observe(el)
+    return () => obs.unobserve(el)
+  }, [])
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '0px 0px -40px 0px' }}
-      transition={{ duration: 0.45, delay: Math.min(delay, 0.2), ease: [0.22, 1, 0.36, 1] }}
-      className={className}
-      {...rest}
-    >
+    <div ref={ref} className={cx('reveal', className)} style={delay ? { transitionDelay: `${Math.min(delay, 0.2)}s` } : undefined}>
       {children}
-    </motion.div>
+    </div>
   )
 }
 

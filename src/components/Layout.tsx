@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { ArrowRight, Instagram, Mail, Menu, MessageCircle, Phone, X } from 'lucide-react'
 import { SITE, ZONES } from '../config'
 import { cx, whatsappLink } from '../lib/utils'
@@ -36,9 +36,6 @@ function Navbar() {
     setOpen(false)
   }, [loc.pathname])
   useEffect(() => {
-    document.body.style.overflow = open ? 'hidden' : ''
-  }, [open])
-  useEffect(() => {
     const f = () => setScrolled(window.scrollY > 12)
     f()
     window.addEventListener('scroll', f, { passive: true })
@@ -49,7 +46,7 @@ function Navbar() {
     <header className="no-print fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-5">
       <nav
         className={cx(
-          'mx-auto flex max-w-7xl items-center justify-between rounded-full px-4 py-2.5 transition-all duration-500 sm:px-5',
+          'mx-auto flex max-w-7xl items-center justify-between rounded-full px-4 py-2.5 transition-[background-color,box-shadow,border-color] duration-300 sm:px-5',
           scrolled || open ? 'glass-blur shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]' : 'border border-transparent',
         )}
       >
@@ -87,37 +84,40 @@ function Navbar() {
           </button>
         </div>
       </nav>
-      <AnimatePresence>
-        {open && (
-          <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)} className="fixed inset-0 -z-10 bg-ink/90 lg:hidden" />
-            <motion.div
-              initial={{ opacity: 0, y: -12, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -12, scale: 0.98 }}
-              className="mx-auto mt-2 max-h-[calc(100dvh-90px)] max-w-7xl overflow-y-auto rounded-3xl border border-line bg-ink-2 p-3 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9)] lg:hidden"
-            >
-              {NAV.map((n) => (
-                <NavLink
-                  key={n.to}
-                  to={n.to}
-                  end
-                  className={({ isActive }) => cx('flex items-center justify-between rounded-2xl px-4 py-3.5 text-lg font-medium', isActive ? 'bg-white/10 text-white' : 'text-white/75')}
-                >
-                  {n.label}
-                  <ArrowRight size={16} className="opacity-40" />
-                </NavLink>
-              ))}
-              <Button to="/reservation" size="lg" className="mt-3 w-full">
-                Réserver ma semaine <ArrowRight size={16} />
-              </Button>
-              <a href={whatsappLink('Bonjour Hannane Cooking !')} target="_blank" rel="noreferrer" className="mt-2 flex items-center justify-center gap-2 rounded-full py-3 text-sm text-mute">
-                <MessageCircle size={16} /> Une question ? WhatsApp
-              </a>
-            </motion.div>
-          </>
+      {/* Menu mobile toujours monté : ouverture/fermeture en CSS pur, sans rendu React coûteux */}
+      <div
+        onClick={() => setOpen(false)}
+        aria-hidden
+        className={cx('fixed inset-0 -z-10 touch-none bg-ink/90 transition-opacity duration-200 lg:hidden', open ? 'opacity-100' : 'pointer-events-none opacity-0')}
+      />
+      <div
+        aria-hidden={!open}
+        className={cx(
+          'mx-auto mt-2 max-h-[calc(100dvh-90px)] max-w-7xl origin-top overflow-y-auto overscroll-contain rounded-3xl border border-line bg-ink-2 p-3 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9)] transition-[opacity,transform,visibility] duration-200 lg:hidden',
+          open ? 'visible translate-y-0 scale-100 opacity-100' : 'invisible -translate-y-2 scale-[0.98] opacity-0',
         )}
-      </AnimatePresence>
+      >
+        {NAV.map((n) => (
+          <NavLink
+            key={n.to}
+            to={n.to}
+            end
+            onClick={() => setOpen(false)}
+            className={({ isActive }) => cx('flex items-center justify-between rounded-2xl px-4 py-3.5 text-lg font-medium active:bg-white/10', isActive ? 'bg-white/10 text-white' : 'text-white/75')}
+          >
+            {n.label}
+            <ArrowRight size={16} className="opacity-40" />
+          </NavLink>
+        ))}
+        <span onClick={() => setOpen(false)} className="mt-3 block">
+          <Button to="/reservation" size="lg" className="w-full">
+            Réserver ma semaine <ArrowRight size={16} />
+          </Button>
+        </span>
+        <a href={whatsappLink('Bonjour Hannane Cooking !')} target="_blank" rel="noreferrer" className="mt-2 flex items-center justify-center gap-2 rounded-full py-3 text-sm text-mute">
+          <MessageCircle size={16} /> Une question ? WhatsApp
+        </a>
+      </div>
     </header>
   )
 }
@@ -187,11 +187,9 @@ export default function Layout() {
       <ScrollToTop />
       <Navbar />
       <main className="pt-20 sm:pt-24">
-        <motion.div key={inBooking ? 'booking' : pathname} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
-          <Suspense fallback={<div className="min-h-[70vh]" />}>
-            <Outlet />
-          </Suspense>
-        </motion.div>
+        <Suspense fallback={<div className="min-h-[70vh]" />}>
+          <Outlet />
+        </Suspense>
       </main>
       {!inBooking && <Footer />}
       {!inBooking && (

@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { motion } from 'framer-motion'
 import { Baby, Clock, Search } from 'lucide-react'
 import { CUISINES, DIETS, RECIPES, SNACKS, srcSet, type Cuisine, type Diet } from '../data/recipes'
 import { Button, Container, SectionTitle } from '../components/ui'
@@ -46,7 +45,7 @@ export default function Menus() {
 
       <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
           {list.map((r) => (
-            <motion.article key={r.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }} className="glass group overflow-hidden rounded-3xl">
+            <article key={r.id} className="fade-in glass group overflow-hidden rounded-3xl">
               <div className="relative aspect-[4/3] overflow-hidden">
                 <img src={r.img} srcSet={srcSet(r.img)} sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, 50vw" alt={r.name} loading="lazy" decoding="async" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
                 <span className="absolute top-2 left-2 rounded-full border border-line bg-ink/75 px-2.5 py-1 text-[11px] sm:top-3 sm:left-3 sm:text-xs">{r.tag}</span>
@@ -63,7 +62,7 @@ export default function Menus() {
                   ))}
                 </div>
               </div>
-            </motion.article>
+            </article>
           ))}
         
       </div>
