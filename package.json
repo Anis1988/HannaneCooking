@@ -10,17 +10,20 @@
     "lint": "tsc -b --noEmit"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.132.1",
     "framer-motion": "^11.11.17",
     "lucide-react": "^0.460.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0",
+    "zod": "^3.25.76",
     "zustand": "^5.0.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.17",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "@vercel/node": "^5.3.0",
     "@vitejs/plugin-react": "^4.3.4",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.6.3",

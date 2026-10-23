@@ -1,5 +1,9 @@
 import { useMemo, useState } from 'react'
-import { Baby, Clock, Search } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { ArrowRight, Baby, Clock, Search } from 'lucide-react'
+import type { MenuResponse } from '../../api/menu'
+import { AiAssistant } from '../components/AiAssistant'
+import { useBooking } from '../store/booking'
 import { CUISINES, DIETS, RECIPES, SNACKS, srcSet, type Cuisine, type Diet } from '../data/recipes'
 import { Button, Container, SectionTitle } from '../components/ui'
 import { cx } from '../lib/utils'
@@ -24,6 +28,8 @@ export default function Menus() {
   return (
     <Container className="py-6 sm:py-10">
       <SectionTitle eyebrow={`${RECIPES.length} recettes de saison`} title={<>La <span className="text-gradient">carte</span></>} sub="Un aperçu de ce que votre cheffe peut cuisiner. Votre menu est composé à la réservation, selon vos goûts." />
+
+      <AiPicks />
 
       <div className="sticky top-[68px] z-30 -mx-4 mb-6 space-y-3 border-b border-line bg-ink/95 p-3 sm:top-24 sm:mx-0 sm:mb-8 sm:rounded-3xl sm:border sm:p-4">
         <label className="relative block">
@@ -89,5 +95,48 @@ function Pill({ active, onClick, children }: { active: boolean; onClick: () => v
     <button onClick={onClick} aria-pressed={active} className={cx('flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm whitespace-nowrap transition', active ? 'border-sun/60 bg-sun/15 text-white' : 'border-line text-white/70 hover:text-white')}>
       {children}
     </button>
+  )
+}
+
+/** « Que cuisiner avec ce que j'ai ? » : Claude choisit des plats de la carte à partir des ingrédients ou d'une photo. */
+function AiPicks() {
+  const [res, setRes] = useState<MenuResponse | null>(null)
+  const set = useBooking((s) => s.set)
+  const nav = useNavigate()
+  const picks = (res?.weeks[0] ?? []).map((d) => ({ ...d, r: RECIPES.find((x) => x.id === d.id)! })).filter((d) => d.r)
+
+  const book = () => {
+    set({ menus: { 1: picks.slice(0, 5).map((d) => d.id) }, aiNotes: Object.fromEntries(picks.map((d) => [d.id, d.why])), aiMessage: res?.message ?? '' })
+    nav('/reservation')
+  }
+
+  return (
+    <section className="mb-10">
+      <AiAssistant dinners={6} weeks={1} onResult={setRes} title="Que cuisiner avec ce que j’ai ?" sub="Listez vos ingrédients ou prenez votre frigo en photo : Claude choisit les plats de la carte qui vont avec." />
+      {res && (
+        <div className="mt-5">
+          {res.message && <p className="mb-4 text-sm text-white/85">✨ {res.message}</p>}
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
+            {picks.map(({ r, why }) => (
+              <article key={r.id} className="fade-in glass overflow-hidden rounded-3xl">
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <img src={r.img} srcSet={srcSet(r.img)} sizes="(min-width: 1024px) 33vw, 50vw" alt={r.name} decoding="async" className="h-full w-full object-cover" />
+                  <span className="absolute top-2 left-2 rounded-full border border-line bg-ink/75 px-2.5 py-1 text-[11px] sm:text-xs">{r.tag}</span>
+                </div>
+                <div className="p-3 sm:p-5">
+                  <h3 className="font-display text-sm leading-snug font-semibold sm:text-base">{r.name}</h3>
+                  {why && <p className="mt-1.5 text-xs leading-snug text-violet sm:text-sm">✨ {why}</p>}
+                </div>
+              </article>
+            ))}
+          </div>
+          {!!picks.length && (
+            <div className="mt-6 text-center">
+              <Button onClick={book} size="lg">Réserver avec ces plats <ArrowRight size={18} /></Button>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
   )
 }

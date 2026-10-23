@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Banknote, Check, ChevronLeft, ChevronRight, MapPin, Minus, Plus, RefreshCw, Shuffle, X } from 'lucide-react'
+import { Banknote, Check, ChevronLeft, ChevronRight, MapPin, Minus, Plus, RefreshCw, Shuffle, Sparkles, X } from 'lucide-react'
+import { AiAssistant } from '../../components/AiAssistant'
 import { MIN_NOTICE_HOURS, SITE, SLOTS, zoneForPostalCode } from '../../config'
 import { FORMULAS, OPTIONS, SUBSCRIPTIONS, getFormula } from '../../data/formulas'
 import { CUISINES, DIETS, EQUIPMENTS, RECIPES, isCompatible, proposeMenu, thumb, type Recipe } from '../../data/recipes'
@@ -213,10 +214,13 @@ export function useEnsureMenus() {
     let changed = false
     const used: string[] = []
     for (let w = 1; w <= f.weeks; w++) {
-      const cur = (s.menus[w] || []).filter((id) => ids.has(id))
-      if (cur.length === Math.min(dinners, pool.length) && cur.length === (s.menus[w] || []).length) next[w] = cur
+      const want = Math.min(dinners, pool.length)
+      const cur = [...new Set((s.menus[w] || []).filter((id) => ids.has(id)))]
+      if (cur.length === want && cur.length === (s.menus[w] || []).length) next[w] = cur
       else {
-        next[w] = proposeMenu(pool, Math.min(dinners, pool.length), s.cuisines, s.kids > 0, s.seed + w * 101, used.slice(-dinners * 2))
+        // on garde les plats déjà choisis (ou proposés par l'IA) et on complète / coupe
+        const extra = proposeMenu(pool, want, s.cuisines, s.kids > 0, s.seed + w * 101, [...cur, ...used.slice(-dinners * 2)]).filter((id) => !cur.includes(id))
+        next[w] = [...cur, ...extra].slice(0, want)
         changed = true
       }
       used.push(...next[w])
@@ -233,6 +237,7 @@ export function Recipes() {
   const { f, dinners } = pricing(s)
   const [week, setWeek] = useState(1)
   const [swap, setSwap] = useState<number | null>(null)
+  const [aiOpen, setAiOpen] = useState(false)
   const menu = (s.menus[week] || []).map((id) => RECIPES.find((r) => r.id === id)!).filter(Boolean)
   const w = Math.min(week, f.weeks)
 
@@ -250,6 +255,35 @@ export function Recipes() {
   return (
     <>
       <StepHead kicker="Choix des recettes" title="Votre menu est prêt ✨" sub={`Nous avons composé ${dinners} dîners selon votre profil. Changez ce que vous voulez.`} />
+      <div className="mb-6">
+        {aiOpen ? (
+          <AiAssistant
+            dinners={Math.min(dinners, pool.length)}
+            weeks={f.weeks}
+            onResult={(r) => {
+              const menus: Record<number, string[]> = {}
+              const notes: Record<string, string> = { ...s.aiNotes }
+              r.weeks.forEach((wk, i) => {
+                if (wk.length) menus[i + 1] = wk.map((d) => d.id)
+                for (const d of wk) if (d.why) notes[d.id] = d.why
+              })
+              if (Object.keys(menus).length) s.set({ menus: { ...s.menus, ...menus }, aiNotes: notes, aiMessage: r.message })
+              setAiOpen(false)
+              setWeek(1)
+            }}
+          />
+        ) : (
+          <button onClick={() => setAiOpen(true)} className="flex w-full items-center gap-3 rounded-3xl border border-violet/30 bg-[linear-gradient(135deg,rgba(139,123,255,0.14),rgba(255,93,115,0.08))] p-4 text-left transition hover:border-violet/60">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-brand text-ink"><Sparkles size={18} /></span>
+            <span className="flex-1">
+              <span className="block font-semibold">Composer avec l’IA</span>
+              <span className="block text-sm text-mute">Vos envies, vos ingrédients, une photo du frigo : Claude s’occupe du menu.</span>
+            </span>
+            <ChevronRight size={18} className="text-mute" />
+          </button>
+        )}
+        {s.aiMessage && !aiOpen && <p className="mt-3 rounded-2xl bg-violet/10 p-3 text-sm">✨ {s.aiMessage}</p>}
+      </div>
       {pool.length < dinners && (
         <p className="mb-6 rounded-2xl bg-coral/10 p-4 text-sm">Seulement {pool.length} recette(s) compatible(s) avec vos critères. Votre cheffe complètera avec des plats sur mesure, ou ajustez vos préférences.</p>
       )}
@@ -275,6 +309,7 @@ export function Recipes() {
                 <span className="text-xs text-sun">Dîner {i + 1} · {r.tag}</span>
                 <span className="mt-1 text-[15px] leading-snug font-semibold sm:text-base">{r.name}</span>
                 <span className="mt-1 text-xs text-mute">{CUISINES.find((c) => c.id === r.cuisine)?.label}{r.kids ? ' · Super kids' : ''}</span>
+                {s.aiNotes[r.id] && <span className="mt-1.5 text-xs leading-snug text-violet">✨ {s.aiNotes[r.id]}</span>}
                 <button onClick={() => setSwap(i)} className="mt-auto -ml-2 flex items-center gap-1.5 self-start rounded-full px-2 py-2 text-sm text-white/70 hover:bg-white/5 hover:text-white"><RefreshCw size={14} /> Changer</button>
               </div>
             </motion.div>
@@ -583,6 +618,8 @@ export function buildSummary(s: BookingState, ref: string) {
     `👤 ${s.address.firstName} ${s.address.lastName} — ${s.address.phone} — ${s.address.email}`,
     `📍 ${s.address.street}${s.address.extra ? ', ' + s.address.extra : ''}, ${s.address.cp} ${s.address.city}`,
     s.address.access && `Accès : ${s.address.access}`,
+    s.aiWishes.trim() && `✨ Envies : ${s.aiWishes.trim()}`,
+    s.aiIngredients.length > 0 && `🥕 Ingrédients à utiliser : ${s.aiIngredients.join(', ')}`,
     s.comment && `💬 ${s.comment}`,
   ]
     .filter((l) => typeof l === 'string')

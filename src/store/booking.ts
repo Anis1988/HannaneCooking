@@ -35,6 +35,11 @@ export type BookingState = {
   giftCode: string
   accepted: boolean
   confirmed: { ref: string; summary: string; sent: boolean } | null
+  // Assistant IA
+  aiWishes: string
+  aiIngredients: string[]
+  aiNotes: Record<string, string>
+  aiMessage: string
   set: (p: Partial<BookingState>) => void
   setAddress: (p: Partial<Address>) => void
   toggle: <K extends 'diets' | 'cuisines' | 'equipment' | 'options'>(key: K, v: BookingState[K][number]) => void
@@ -61,6 +66,10 @@ const initial = {
   giftCode: '',
   accepted: false,
   confirmed: null as BookingState['confirmed'],
+  aiWishes: '',
+  aiIngredients: [] as string[],
+  aiNotes: {} as Record<string, string>,
+  aiMessage: '',
 }
 
 export const useBooking = create<BookingState>()(

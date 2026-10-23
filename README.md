@@ -21,5 +21,13 @@ npm run build    # production dans dist/
 - `src/data/recipes.ts` : recettes (photos Unsplash).
 - `src/data/content.ts` : FAQ et avis (**avis d'exemple à remplacer**, puis mettre `REVIEWS_ARE_SAMPLES = false`).
 
+## Assistant IA (Claude)
+- `api/menu.ts` : fonction Vercel qui demande à Claude de composer le menu à partir des envies (texte libre), des ingrédients à utiliser et d'une photo du frigo (facultative).
+- Claude choisit **uniquement des plats du catalogue** (donc toujours avec photo). Régimes, allergies et équipement sont filtrés côté serveur avant l'appel.
+- Visible à l'étape « Choix des recettes » et en haut de la page **Menus** (« Que cuisiner avec ce que j'ai ? »).
+- **À configurer** : Vercel → Settings → Environment Variables → `ANTHROPIC_API_KEY` (clé créée sur console.anthropic.com), puis redéployer. Sans clé, l'assistant affiche « Assistant IA non configuré » et le reste du site fonctionne.
+- Limite anti-abus : 12 demandes / 10 min par adresse IP.
+- En local, `npm run dev` ne sert pas `/api` : utilisez `vercel dev` pour tester l'assistant.
+
 ## Déploiement
 Site statique (Netlify / Vercel) : `_redirects` et `vercel.json` gèrent les routes.
