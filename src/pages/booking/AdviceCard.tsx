@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { Check, Loader2, Sparkles } from 'lucide-react'
 import { FORMULAS } from '../../data/formulas'
 import { askAdvice } from '../../lib/ai'
-import { cx } from '../../lib/utils'
-import { useBooking } from '../../store/booking'
+import { cx, eur } from '../../lib/utils'
+import { pricing, useBooking } from '../../store/booking'
 
 /** Conseil de formule par Claude : lancé automatiquement à l'arrivée sur l'étape, relançable avec une précision. */
 export function AdviceCard() {
@@ -36,6 +36,10 @@ export function AdviceCard() {
   const a = s.aiAdvice
   const f = a && FORMULAS.find((x) => x.id === a.formula)
   const applied = !!a && s.formula === a.formula && s.dinners === a.dinners && s.subscription === a.subscription
+  // prix affichés pour que le client voie l'effet du conseil avant de l'appliquer
+  const cur = pricing(s)
+  const next = a ? pricing({ formula: a.formula, dinners: a.dinners, options: s.options }) : null
+  const priceLine = (p: NonNullable<typeof next>) => `${eur(p.weekly)} / semaine${p.f.weeks > 1 ? ` · ${eur(p.total)} sur ${p.f.weeks} semaines` : ''}`
   // le conseil est un bonus : en cas d'échec on n'encombre pas l'écran
   if (error && !a) return null
 
@@ -60,6 +64,12 @@ export function AdviceCard() {
               <p className="mt-2 text-sm">
                 👉 <b>{f.name}</b> · {a.dinners} dîners / semaine{a.subscription !== 'none' ? ` · abonnement ${a.subscription} mois` : ''}
               </p>
+              {next && (
+                <p className="mt-1 text-sm">
+                  <span className="font-semibold text-sun">{priceLine(next)}</span>
+                  {!applied && <span className="block text-xs text-mute">Actuellement : {cur.f.name}, {priceLine(cur)}</span>}
+                </p>
+              )}
             </>
           )}
         </div>
