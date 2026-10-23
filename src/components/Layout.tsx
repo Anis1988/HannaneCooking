@@ -93,8 +93,8 @@ function Navbar() {
       <div
         aria-hidden={!open}
         className={cx(
-          'mx-auto mt-2 max-h-[calc(100dvh-90px)] max-w-7xl origin-top overflow-y-auto overscroll-contain rounded-3xl border border-line bg-ink-2 p-3 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9)] transition-[opacity,transform,visibility] duration-200 lg:hidden',
-          open ? 'visible translate-y-0 scale-100 opacity-100' : 'invisible -translate-y-2 scale-[0.98] opacity-0',
+          'absolute inset-x-3 top-full mx-auto mt-2 max-h-[calc(100dvh-90px)] max-w-7xl origin-top overflow-y-auto sm:inset-x-5 overscroll-contain rounded-3xl border border-line bg-ink-2 p-3 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9)] transition-[opacity,transform,visibility] duration-200 lg:hidden',
+          open ? 'visible translate-y-0 scale-100 opacity-100' : 'pointer-events-none invisible -translate-y-2 scale-[0.98] opacity-0',
         )}
       >
         {NAV.map((n) => (
