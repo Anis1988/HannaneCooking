@@ -1,5 +1,5 @@
 import { Baby, Gift, HeartHandshake, Leaf, Moon, Repeat } from 'lucide-react'
-import { RECIPES } from '../data/recipes'
+import { RECIPES, srcSet, thumb } from '../data/recipes'
 import { Button, Card, Container, Eyebrow, Reveal, SectionTitle } from '../components/ui'
 import { CtaBanner, PricingCards } from '../components/sections'
 
@@ -28,7 +28,7 @@ export default function PostPartum() {
         </Reveal>
         <Reveal delay={0.1} className="grid grid-cols-2 gap-3 pb-8 sm:gap-4">
           {[RECIPES[13], RECIPES[4], RECIPES[11], RECIPES[2]].map((r, i) => (
-            <img key={r.id} src={r.img} alt={r.name} className={`aspect-square w-full rounded-3xl object-cover ${i % 2 ? 'translate-y-8' : ''}`} />
+            <img key={r.id} src={thumb(r.img, 500)} srcSet={srcSet(r.img)} sizes="(min-width: 1024px) 25vw, 50vw" alt={r.name} decoding="async" className={`aspect-square w-full rounded-3xl object-cover ${i % 2 ? 'translate-y-8' : ''}`} />
           ))}
         </Reveal>
       </Container>

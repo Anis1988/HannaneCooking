@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Baby, Clock, Search } from 'lucide-react'
-import { CUISINES, DIETS, RECIPES, SNACKS, type Cuisine, type Diet } from '../data/recipes'
+import { CUISINES, DIETS, RECIPES, SNACKS, srcSet, type Cuisine, type Diet } from '../data/recipes'
 import { Button, Container, SectionTitle } from '../components/ui'
 import { cx } from '../lib/utils'
 
@@ -26,7 +26,7 @@ export default function Menus() {
     <Container className="py-6 sm:py-10">
       <SectionTitle eyebrow={`${RECIPES.length} recettes de saison`} title={<>La <span className="text-gradient">carte</span></>} sub="Un aperçu de ce que votre cheffe peut cuisiner. Votre menu est composé à la réservation, selon vos goûts." />
 
-      <div className="sticky top-[68px] z-30 -mx-4 mb-6 space-y-3 border-b border-line bg-ink/85 p-3 backdrop-blur-xl sm:top-24 sm:mx-0 sm:mb-8 sm:rounded-3xl sm:border sm:p-4">
+      <div className="sticky top-[68px] z-30 -mx-4 mb-6 space-y-3 border-b border-line bg-ink/95 p-3 sm:top-24 sm:mx-0 sm:mb-8 sm:rounded-3xl sm:border sm:p-4">
         <label className="relative block">
           <Search className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-mute" size={18} />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un plat, un ingrédient…" className="field !rounded-full !pl-11" />
@@ -44,13 +44,12 @@ export default function Menus() {
       </div>
       <p className="mb-6 text-sm text-mute">Tous nos plats sont sans porc. {list.length} plat{list.length > 1 ? 's' : ''}.</p>
 
-      <motion.div layout className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
-        <AnimatePresence>
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
           {list.map((r) => (
-            <motion.article key={r.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="glass group overflow-hidden rounded-3xl">
+            <motion.article key={r.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }} className="glass group overflow-hidden rounded-3xl">
               <div className="relative aspect-[4/3] overflow-hidden">
-                <img src={r.img} alt={r.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                <span className="glass absolute top-2 left-2 rounded-full px-2.5 py-1 text-[11px] sm:top-3 sm:left-3 sm:text-xs">{r.tag}</span>
+                <img src={r.img} srcSet={srcSet(r.img)} sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, 50vw" alt={r.name} loading="lazy" decoding="async" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                <span className="absolute top-2 left-2 rounded-full border border-line bg-ink/75 px-2.5 py-1 text-[11px] sm:top-3 sm:left-3 sm:text-xs">{r.tag}</span>
                 {r.kids && <span className="absolute top-2 right-2 rounded-full bg-mint px-2 py-0.5 text-[11px] font-semibold text-ink sm:top-3 sm:right-3 sm:text-xs">Kids</span>}
               </div>
               <div className="p-3 sm:p-5">
@@ -66,8 +65,8 @@ export default function Menus() {
               </div>
             </motion.article>
           ))}
-        </AnimatePresence>
-      </motion.div>
+        
+      </div>
       {!list.length && <p className="py-16 text-center text-mute">Aucun plat ne correspond. Essayez d’autres filtres.</p>}
 
       <section className="mt-24">
@@ -75,8 +74,8 @@ export default function Menus() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5">
           {SNACKS.map((s) => (
             <figure key={s.name} className="relative aspect-square overflow-hidden rounded-3xl border border-line">
-              <img src={s.img} alt={s.name} loading="lazy" className="h-full w-full object-cover" />
-              <figcaption className="glass absolute inset-x-3 bottom-3 rounded-2xl px-4 py-3 text-sm font-medium">{s.name}</figcaption>
+              <img src={s.img} srcSet={srcSet(s.img)} sizes="(min-width: 640px) 33vw, 50vw" alt={s.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+              <figcaption className="absolute inset-x-3 bottom-3 border border-line bg-ink/75 rounded-2xl px-4 py-3 text-sm font-medium">{s.name}</figcaption>
             </figure>
           ))}
         </div>

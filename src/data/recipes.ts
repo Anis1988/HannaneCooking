@@ -45,6 +45,10 @@ export type Recipe = {
 
 const u = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=800&q=70`
 
+/** Même photo en plus petit (Unsplash redimensionne à la volée). */
+export const thumb = (url: string, w: number) => url.replace('w=800', `w=${w}`)
+export const srcSet = (url: string) => `${thumb(url, 400)} 400w, ${thumb(url, 800)} 800w, ${thumb(url, 1200)} 1200w`
+
 export const RECIPES: Recipe[] = [
   {
     id: 'lasagnes', name: 'Lasagnes signature, salade verte', tag: 'Réconfortant', img: u('1574894709920-11b28e7367e3'),

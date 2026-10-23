@@ -1,7 +1,6 @@
-import { motion, useScroll, useTransform } from 'framer-motion'
-import { useRef } from 'react'
+import { motion } from 'framer-motion'
 import { ArrowRight, Baby, Banknote, CalendarCheck, ChefHat, Clock, Gift, ListChecks, ShieldCheck, Sparkles, Users, UtensilsCrossed, WandSparkles } from 'lucide-react'
-import { IMAGES, RECIPES } from '../data/recipes'
+import { IMAGES, RECIPES, srcSet, thumb } from '../data/recipes'
 import { Button, Card, Container, Eyebrow, Reveal, SectionTitle } from '../components/ui'
 import { CtaBanner, FaqList, PricingCards, Reviews } from '../components/sections'
 
@@ -49,13 +48,8 @@ export default function Home() {
 }
 
 function Hero() {
-  const ref = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] })
-  const y1 = useTransform(scrollYProgress, [0, 1], [0, -50])
-  const y2 = useTransform(scrollYProgress, [0, 1], [0, -60])
-
   return (
-    <section ref={ref} className="relative overflow-hidden pt-6 pb-12 sm:pt-16 sm:pb-20">
+    <section className="relative overflow-hidden pt-6 pb-12 sm:pt-16 sm:pb-20">
       <Container className="grid items-center gap-14 lg:grid-cols-[1.05fr_1fr]">
         <div>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
@@ -94,25 +88,11 @@ function Hero() {
         <div className="relative mx-auto mt-2 aspect-square w-[88%] max-w-[560px] sm:mt-6 lg:mt-0 lg:w-full">
           <div className="absolute inset-[8%] rounded-full border border-dashed border-white/10 spin-slow" />
           <div className="absolute inset-[22%] rounded-full border border-white/5" />
-          <motion.div style={{ y: y2 }} className="absolute inset-[14%] overflow-hidden rounded-full shadow-[0_40px_120px_-30px_rgba(255,93,115,0.6)] ring-1 ring-white/10">
-            <img src={IMAGES.spread} alt="Assiettes de plats faits maison" className="h-full w-full object-cover" />
-          </motion.div>
-          <motion.img
-            style={{ y: y1 }}
-            src={RECIPES[1].img}
-            alt=""
-            className="absolute top-[2%] right-[2%] h-[30%] w-[30%] rounded-full object-cover shadow-2xl ring-4 ring-ink"
-            animate={{ rotate: [0, 6, 0] }}
-            transition={{ duration: 8, repeat: Infinity }}
-          />
-          <motion.img
-            style={{ y: y1 }}
-            src={RECIPES[11].img}
-            alt=""
-            className="absolute bottom-[4%] left-[0%] h-[28%] w-[28%] rounded-full object-cover shadow-2xl ring-4 ring-ink"
-            animate={{ rotate: [0, -8, 0] }}
-            transition={{ duration: 9, repeat: Infinity }}
-          />
+          <div className="absolute inset-[14%] overflow-hidden rounded-full shadow-[0_30px_80px_-30px_rgba(255,93,115,0.6)] ring-1 ring-white/10">
+            <img src={IMAGES.spread} srcSet={srcSet(IMAGES.spread)} sizes="(min-width: 1024px) 420px, 70vw" alt="Assiettes de plats faits maison" fetchPriority="high" className="h-full w-full object-cover" />
+          </div>
+          <img src={thumb(RECIPES[1].img, 300)} alt="" className="sway absolute top-[2%] right-[2%] h-[30%] w-[30%] rounded-full object-cover shadow-xl ring-4 ring-ink" />
+          <img src={thumb(RECIPES[11].img, 300)} alt="" className="sway sway-alt absolute bottom-[4%] left-[0%] h-[28%] w-[28%] rounded-full object-cover shadow-xl ring-4 ring-ink" />
           <FloatCard className="top-[12%] left-0 max-sm:hidden lg:left-[-2%]" delay={0.6} icon={<Clock size={18} />} title="C’est prêt en 2 h" sub="Gagnez 5 h / semaine" />
           <FloatCard className="right-0 bottom-[16%] max-sm:hidden lg:right-[-4%]" delay={0.8} icon={<Banknote size={18} />} title="Paiement espèces" sub="À la cheffe, le jour J" />
         </div>
@@ -124,10 +104,10 @@ function Hero() {
 function FloatCard({ className, icon, title, sub, delay }: { className: string; icon: React.ReactNode; title: string; sub: string; delay: number }) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1, y: [0, -10, 0] }}
-      transition={{ delay, y: { duration: 5, repeat: Infinity, ease: 'easeInOut' } }}
-      className={`glass absolute flex items-center gap-3 rounded-2xl px-4 py-3 shadow-2xl ${className}`}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay, duration: 0.4 }}
+      className={`bob absolute flex items-center gap-3 rounded-2xl border border-line bg-ink-2/90 px-4 py-3 shadow-xl ${className}`}
     >
       <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-brand text-ink">{icon}</span>
       <span>
@@ -145,7 +125,7 @@ function Marquee() {
       <div className="marquee flex w-max gap-10">
         {[...items, ...items].map((r, i) => (
           <span key={i} className="flex items-center gap-3 text-sm whitespace-nowrap text-white/70">
-            <img src={r.img.replace('w=800', 'w=80')} alt="" className="h-8 w-8 rounded-full object-cover" loading="lazy" />
+            <img src={thumb(r.img, 80)} alt="" width={32} height={32} className="h-8 w-8 rounded-full object-cover" loading="lazy" decoding="async" />
             {r.name}
             <span className="text-sun">✦</span>
           </span>
@@ -225,10 +205,10 @@ function Dishes() {
           {FEATURED.map((r, i) => (
             <Reveal key={r.id} delay={i * 0.06} className={i === 0 ? 'col-span-2 row-span-2 md:col-span-1' : ''}>
               <div className="group relative h-full min-h-44 overflow-hidden rounded-3xl border border-line sm:min-h-56">
-                <img src={r.img} alt={r.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                <img src={r.img} srcSet={srcSet(r.img)} sizes="(min-width: 768px) 33vw, 50vw" alt={r.name} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
                 <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-5">
-                  <span className="glass rounded-full px-2.5 py-1 text-[11px] sm:text-xs">{r.tag}</span>
+                  <span className="rounded-full border border-line bg-ink/70 px-2.5 py-1 text-[11px] sm:text-xs">{r.tag}</span>
                   <h3 className="mt-2 font-display text-sm leading-tight font-semibold sm:mt-3 sm:text-lg">{r.name}</h3>
                 </div>
               </div>
@@ -369,8 +349,8 @@ function Gallery() {
         <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 [scrollbar-width:none]">
           {shots.map(([src, cap]) => (
             <figure key={cap} className="relative aspect-[3/4] w-[78%] shrink-0 snap-center overflow-hidden rounded-3xl border border-line sm:w-[40%] lg:w-[24%]">
-              <img src={src} alt={cap} loading="lazy" className="h-full w-full object-cover" />
-              <figcaption className="glass absolute inset-x-3 bottom-3 rounded-2xl px-4 py-3 text-sm">{cap}</figcaption>
+              <img src={src} srcSet={srcSet(src)} sizes="(min-width: 1024px) 25vw, 78vw" alt={cap} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+              <figcaption className="absolute inset-x-3 bottom-3 border border-line bg-ink/75 rounded-2xl px-4 py-3 text-sm">{cap}</figcaption>
             </figure>
           ))}
         </div>

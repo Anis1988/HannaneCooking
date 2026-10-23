@@ -48,28 +48,35 @@ body {
     radial-gradient(800px 500px at 50% 120%, rgb(255 93 115 / 0.12), transparent 60%),
     var(--color-ink);
 }
+/* Halos doux : dégradés radiaux (pas de filter: blur), animés uniquement
+   via transform sur grand écran pour rester fluides sur mobile. */
 .aurora::before,
 .aurora::after {
   content: '';
   position: absolute;
-  width: 46vmax;
-  height: 46vmax;
+  width: 70vmax;
+  height: 70vmax;
   border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.22;
-  animation: drift 26s ease-in-out infinite alternate;
+  will-change: transform;
 }
 .aurora::before {
-  background: var(--color-coral);
-  top: 30%;
-  left: -15%;
+  background: radial-gradient(circle, rgb(255 93 115 / 0.16), transparent 65%);
+  top: 20%;
+  left: -35%;
 }
 .aurora::after {
-  background: var(--color-mint);
-  bottom: -20%;
-  right: -10%;
-  opacity: 0.12;
-  animation-delay: -12s;
+  background: radial-gradient(circle, rgb(94 242 195 / 0.08), transparent 65%);
+  bottom: -35%;
+  right: -30%;
+}
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .aurora::before,
+  .aurora::after {
+    animation: drift 30s ease-in-out infinite alternate;
+  }
+  .aurora::after {
+    animation-delay: -15s;
+  }
 }
 .grid-bg {
   position: absolute;
@@ -86,11 +93,19 @@ body {
   }
 }
 
+/* Carte vitrée sans backdrop-filter : le flou d'arrière-plan sur des dizaines
+   d'éléments fait ramer le défilement sur mobile. */
 @utility glass {
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.025));
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.03));
   border: 1px solid var(--color-line);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+/* Vrai flou, réservé aux quelques éléments fixes (barre de navigation, barre d'action). */
+@utility glass-blur {
+  background: rgb(14 14 23 / 0.72);
+  border: 1px solid var(--color-line);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
 }
 
 @utility text-gradient {
@@ -128,6 +143,7 @@ body {
 
 .marquee {
   animation: marquee 40s linear infinite;
+  will-change: transform;
 }
 @keyframes marquee {
   to {
@@ -189,11 +205,37 @@ select {
   }
 }
 
-.spin-slow {
-  animation: spin-slow 60s linear infinite;
+@media (min-width: 1024px) {
+  .spin-slow {
+    animation: spin-slow 60s linear infinite;
+  }
 }
 @keyframes spin-slow {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Petites animations décoratives : uniquement sur grand écran. */
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .bob {
+    animation: bob 5s ease-in-out infinite;
+  }
+  .sway {
+    animation: sway 8s ease-in-out infinite;
+  }
+  .sway-alt {
+    animation-duration: 9s;
+    animation-direction: reverse;
+  }
+}
+@keyframes bob {
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes sway {
+  50% {
+    transform: rotate(6deg);
   }
 }

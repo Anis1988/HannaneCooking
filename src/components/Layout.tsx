@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowRight, Instagram, Mail, Menu, MessageCircle, Phone, X } from 'lucide-react'
@@ -50,7 +50,7 @@ function Navbar() {
       <nav
         className={cx(
           'mx-auto flex max-w-7xl items-center justify-between rounded-full px-4 py-2.5 transition-all duration-500 sm:px-5',
-          scrolled || open ? 'glass bg-ink/70 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]' : 'bg-transparent',
+          scrolled || open ? 'glass-blur shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]' : 'border border-transparent',
         )}
       >
         <Logo />
@@ -90,7 +90,7 @@ function Navbar() {
       <AnimatePresence>
         {open && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)} className="fixed inset-0 -z-10 bg-ink/80 backdrop-blur-md lg:hidden" />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)} className="fixed inset-0 -z-10 bg-ink/90 lg:hidden" />
             <motion.div
               initial={{ opacity: 0, y: -12, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -187,11 +187,11 @@ export default function Layout() {
       <ScrollToTop />
       <Navbar />
       <main className="pt-20 sm:pt-24">
-        <AnimatePresence mode="wait">
-          <motion.div key={inBooking ? 'booking' : pathname} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+        <motion.div key={inBooking ? 'booking' : pathname} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
+          <Suspense fallback={<div className="min-h-[70vh]" />}>
             <Outlet />
-          </motion.div>
-        </AnimatePresence>
+          </Suspense>
+        </motion.div>
       </main>
       {!inBooking && <Footer />}
       {!inBooking && (

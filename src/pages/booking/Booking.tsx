@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Check, Loader2, RotateCcw } from 'lucide-react'
 import { zoneForPostalCode } from '../../config'
@@ -101,7 +101,7 @@ export default function Booking() {
   return (
     <Container className="pb-36 sm:pb-40">
       {/* barre de progression mobile */}
-      <div className="sticky top-[68px] z-30 -mx-4 mb-5 bg-ink/80 px-4 py-2.5 backdrop-blur-xl sm:top-[76px] lg:hidden">
+      <div className="sticky top-[68px] z-30 -mx-4 mb-5 bg-ink/95 px-4 py-2.5 sm:top-[76px] lg:hidden">
         <div className="mb-1.5 flex justify-between text-xs text-mute">
           <span className="font-semibold text-white">{step.section}</span>
           <span>{idx + 1} / {STEPS.length}</span>
@@ -139,11 +139,9 @@ export default function Booking() {
         </aside>
 
         <section className="min-w-0">
-          <AnimatePresence mode="wait">
-            <motion.div key={path} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}>
-              {step.render(tried)}
-            </motion.div>
-          </AnimatePresence>
+          <motion.div key={path} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}>
+            {step.render(tried)}
+          </motion.div>
           {tried && step.valid && !step.valid(s) && (
             <p className="mt-6 rounded-2xl bg-coral/10 p-3 text-sm text-coral">Merci de compléter les champs requis pour continuer.</p>
           )}
@@ -155,8 +153,8 @@ export default function Booking() {
       </div>
 
       {/* barre d'action */}
-      <div className="no-print fixed inset-x-0 bottom-0 z-40 border-t border-line bg-ink/95 px-3 pt-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))] backdrop-blur-xl sm:border-0 sm:bg-transparent sm:p-4 sm:backdrop-blur-none">
-        <div className="mx-auto flex max-w-3xl items-center gap-3 sm:glass sm:rounded-full sm:bg-ink/80 sm:p-2 sm:shadow-[0_20px_60px_-10px_rgba(0,0,0,0.9)]">
+      <div className="no-print fixed inset-x-0 bottom-0 z-40 border-t border-line bg-ink/95 px-3 pt-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))] sm:border-0 sm:bg-transparent sm:p-4">
+        <div className="mx-auto flex max-w-3xl items-center gap-3 sm:glass-blur sm:rounded-full sm:p-2 sm:shadow-[0_20px_60px_-10px_rgba(0,0,0,0.9)]">
           <button
             onClick={() => (idx > 0 ? nav(`/reservation/${STEPS[idx - 1].path}`) : nav('/'))}
             className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white/5 hover:bg-white/10"

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { Banknote, Check, ChevronLeft, ChevronRight, MapPin, Minus, Plus, RefreshCw, Shuffle, X } from 'lucide-react'
 import { MIN_NOTICE_HOURS, SITE, SLOTS, zoneForPostalCode } from '../../config'
 import { FORMULAS, OPTIONS, SUBSCRIPTIONS, getFormula } from '../../data/formulas'
-import { CUISINES, DIETS, EQUIPMENTS, RECIPES, isCompatible, proposeMenu, type Recipe } from '../../data/recipes'
+import { CUISINES, DIETS, EQUIPMENTS, RECIPES, isCompatible, proposeMenu, thumb, type Recipe } from '../../data/recipes'
 import { pricing, useBooking, type BookingState } from '../../store/booking'
 import { Card, Chip } from '../../components/ui'
 import { Field, isEmail, isPhone } from '../../components/form'
@@ -268,10 +268,9 @@ export function Recipes() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <AnimatePresence mode="popLayout">
           {menu.map((r, i) => (
-            <motion.div key={`${w}-${i}-${r.id}`} layout initial={{ opacity: 0, rotateX: -30 }} animate={{ opacity: 1, rotateX: 0 }} exit={{ opacity: 0 }} transition={{ delay: i * 0.05 }} className="glass group flex overflow-hidden rounded-3xl">
-              <img src={r.img} alt="" className="h-auto w-24 shrink-0 object-cover sm:w-32" />
+            <motion.div key={`${w}-${i}-${r.id}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: i * 0.04 }} className="glass group flex overflow-hidden rounded-3xl">
+              <img src={thumb(r.img, 300)} alt="" loading="lazy" decoding="async" className="h-auto w-24 shrink-0 object-cover sm:w-32" />
               <div className="flex flex-1 flex-col p-4">
                 <span className="text-xs text-sun">Dîner {i + 1} · {r.tag}</span>
                 <span className="mt-1 text-[15px] leading-snug font-semibold sm:text-base">{r.name}</span>
@@ -280,7 +279,7 @@ export function Recipes() {
               </div>
             </motion.div>
           ))}
-        </AnimatePresence>
+        
       </div>
 
       <AnimatePresence>
@@ -294,7 +293,7 @@ export function Recipes() {
               <div className="grid gap-3 sm:grid-cols-2">
                 {pool.filter((r) => !(s.menus[w] || []).includes(r.id)).map((r) => (
                   <button key={r.id} onClick={() => replace(swap, r)} className="flex items-center gap-3 rounded-2xl border border-line p-2 text-left transition hover:border-sun/60 hover:bg-white/5">
-                    <img src={r.img.replace('w=800', 'w=160')} alt="" className="h-16 w-16 rounded-xl object-cover" />
+                    <img src={thumb(r.img, 160)} alt="" loading="lazy" decoding="async" className="h-16 w-16 rounded-xl object-cover" />
                     <span className="text-sm font-medium">{r.name}</span>
                   </button>
                 ))}

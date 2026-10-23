@@ -1,17 +1,28 @@
-import { StrictMode } from 'react'
+import { lazy, StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import './index.css'
 import Layout from './components/Layout'
 import Home from './pages/Home'
-import Tarifs from './pages/Tarifs'
-import Menus from './pages/Menus'
-import Faq from './pages/Faq'
-import GiftCards from './pages/GiftCards'
-import PostPartum from './pages/PostPartum'
-import { BecomeChef, Contact } from './pages/Forms'
-import { Cgv, Privacy, NotFound } from './pages/Legal'
-import Booking from './pages/booking/Booking'
+
+// Pages secondaires chargées à la demande : premier affichage plus rapide sur mobile.
+const Tarifs = lazy(() => import('./pages/Tarifs'))
+const Menus = lazy(() => import('./pages/Menus'))
+const Faq = lazy(() => import('./pages/Faq'))
+const GiftCards = lazy(() => import('./pages/GiftCards'))
+const PostPartum = lazy(() => import('./pages/PostPartum'))
+const BecomeChef = lazy(() => import('./pages/Forms').then((m) => ({ default: m.BecomeChef })))
+const Contact = lazy(() => import('./pages/Forms').then((m) => ({ default: m.Contact })))
+const Cgv = lazy(() => import('./pages/Legal').then((m) => ({ default: m.Cgv })))
+const Privacy = lazy(() => import('./pages/Legal').then((m) => ({ default: m.Privacy })))
+const NotFound = lazy(() => import('./pages/Legal').then((m) => ({ default: m.NotFound })))
+const Booking = lazy(() => import('./pages/booking/Booking'))
+
+// Préchargement discret après l'affichage : la navigation reste instantanée.
+const preload = () => {
+  for (const load of [() => import('./pages/booking/Booking'), () => import('./pages/Tarifs'), () => import('./pages/Menus'), () => import('./pages/GiftCards'), () => import('./pages/PostPartum'), () => import('./pages/Faq'), () => import('./pages/Forms'), () => import('./pages/Legal')]) load()
+}
+window.addEventListener('load', () => setTimeout(preload, 1200), { once: true })
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
