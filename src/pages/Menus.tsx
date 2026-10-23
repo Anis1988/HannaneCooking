@@ -112,7 +112,7 @@ function AiPicks() {
 
   return (
     <section className="mb-10">
-      <AiAssistant dinners={6} weeks={1} onResult={setRes} title="Que cuisiner avec ce que j’ai ?" sub="Listez vos ingrédients ou prenez votre frigo en photo : Claude choisit les plats de la carte qui vont avec." />
+      <AiAssistant dinners={6} weeks={1} inBooking={false} onResult={setRes} title="Que cuisiner avec ce que j’ai ?" sub="Listez vos ingrédients ou prenez votre frigo en photo : Claude choisit les plats de la carte qui vont avec." />
       {res && (
         <div className="mt-5">
           {res.message && <p className="mb-4 text-sm text-white/85">✨ {res.message}</p>}

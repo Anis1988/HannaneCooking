@@ -1,8 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Banknote, Check, ChevronLeft, ChevronRight, MapPin, Minus, Plus, RefreshCw, Shuffle, Sparkles, X } from 'lucide-react'
+import { Banknote, Check, ChevronLeft, ChevronRight, Loader2, MapPin, Minus, Plus, RefreshCw, Shuffle, Sparkles, X } from 'lucide-react'
 import { AiAssistant } from '../../components/AiAssistant'
+import { AdviceCard } from './AdviceCard'
+import { askMenu } from '../../lib/ai'
+import type { MenuResponse } from '../../../api/menu'
 import { MIN_NOTICE_HOURS, SITE, SLOTS, zoneForPostalCode } from '../../config'
 import { FORMULAS, OPTIONS, SUBSCRIPTIONS, getFormula } from '../../data/formulas'
 import { CUISINES, DIETS, EQUIPMENTS, RECIPES, isCompatible, proposeMenu, thumb, type Recipe } from '../../data/recipes'
@@ -140,10 +143,11 @@ export function Kitchen() {
 }
 
 export function FormulaStep() {
-  const { formula, dinners, subscription, set } = useBooking()
+  const { formula, dinners, subscription, set, aiAdvice } = useBooking()
   return (
     <>
       <StepHead kicker="Question 5 sur 5" title="Quelle formule souhaitez-vous ?" sub="Testez le service une semaine, ou soufflez un mois entier." />
+      <AdviceCard />
       <div className="space-y-4">
         {FORMULAS.map((f) => {
           const active = formula === f.id
@@ -154,7 +158,7 @@ export function FormulaStep() {
                 <div className="flex gap-4">
                   <span className={cx('mt-1 grid h-6 w-6 shrink-0 place-items-center rounded-full border-2', active ? 'border-sun bg-sun text-ink' : 'border-white/30')}>{active && <Check size={14} />}</span>
                   <div>
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-xl font-bold">{f.name} {f.badge && <span className="rounded-full bg-gradient-brand px-2 py-0.5 text-[10px] whitespace-nowrap text-ink">❤️ {f.badge}</span>}</div>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-xl font-bold">{f.name} {aiAdvice?.formula === f.id ? <span className="rounded-full bg-violet px-2 py-0.5 text-[10px] whitespace-nowrap text-white">✨ Conseillé par l’IA</span> : (f.badge && <span className="rounded-full bg-gradient-brand px-2 py-0.5 text-[10px] whitespace-nowrap text-ink">❤️ {f.badge}</span>)}</div>
                     <ul className="mt-2 space-y-1 text-sm text-mute">{f.perks.map((p) => <li key={p}>· {p}</li>)}</ul>
                   </div>
                 </div>
@@ -241,13 +245,64 @@ export function Recipes() {
   const menu = (s.menus[week] || []).map((id) => RECIPES.find((r) => r.id === id)!).filter(Boolean)
   const w = Math.min(week, f.weeks)
 
+  // Menu IA automatique : un appel par profil + formule, appliqué seulement si le client
+  // n'a rien modifié entre-temps. Le menu « règles » reste affiché en attendant (et en secours).
+  const aiSig = JSON.stringify([s.adults, s.kids, s.diets, s.avoid, s.equipment, s.cuisines, s.formula, dinners, f.weeks])
+  const [autoLoading, setAutoLoading] = useState(false)
+  const edited = useRef(false)
+  const mounted = useRef(true)
+  useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+    }
+  }, [])
+  const applyAi = (r: MenuResponse) => {
+    const st = useBooking.getState()
+    const menus: Record<number, string[]> = {}
+    const notes: Record<string, string> = { ...st.aiNotes }
+    r.weeks.forEach((wk, i) => {
+      if (wk.length) menus[i + 1] = wk.map((d) => d.id)
+      for (const d of wk) if (d.why) notes[d.id] = d.why
+    })
+    if (Object.keys(menus).length) st.set({ menus: { ...st.menus, ...menus }, aiNotes: notes, aiMessage: r.message })
+  }
+  useEffect(() => {
+    const st = useBooking.getState()
+    if (!pool.length || st.aiMenuSig === aiSig) return
+    st.set({ aiMenuSig: aiSig })
+    edited.current = false
+    setAutoLoading(true)
+    askMenu({
+      wishes: st.aiWishes,
+      ingredients: st.aiIngredients,
+      adults: st.adults,
+      kids: st.kids,
+      diets: st.diets,
+      avoid: st.avoid,
+      equipment: st.equipment,
+      cuisines: st.cuisines,
+      dinners: Math.min(dinners, pool.length),
+      weeks: f.weeks,
+      formula: st.formula,
+    })
+      .then((r) => {
+        if (mounted.current && !edited.current) applyAi(r)
+      })
+      .catch(() => {}) // en cas d'échec, le menu composé par les règles reste en place
+      .finally(() => mounted.current && setAutoLoading(false))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiSig, pool.length])
+
   const replace = (idx: number, r: Recipe) => {
+    edited.current = true
     const m = [...(s.menus[w] || [])]
     m[idx] = r.id
     s.set({ menus: { ...s.menus, [w]: m } })
     setSwap(null)
   }
   const reshuffle = () => {
+    edited.current = true
     const used = Object.entries(s.menus).filter(([k]) => Number(k) !== w).flatMap(([, v]) => v)
     s.set({ menus: { ...s.menus, [w]: proposeMenu(pool, Math.min(dinners, pool.length), s.cuisines, s.kids > 0, Math.floor(Math.random() * 1e6), used) } })
   }
@@ -261,13 +316,8 @@ export function Recipes() {
             dinners={Math.min(dinners, pool.length)}
             weeks={f.weeks}
             onResult={(r) => {
-              const menus: Record<number, string[]> = {}
-              const notes: Record<string, string> = { ...s.aiNotes }
-              r.weeks.forEach((wk, i) => {
-                if (wk.length) menus[i + 1] = wk.map((d) => d.id)
-                for (const d of wk) if (d.why) notes[d.id] = d.why
-              })
-              if (Object.keys(menus).length) s.set({ menus: { ...s.menus, ...menus }, aiNotes: notes, aiMessage: r.message })
+              edited.current = true // la demande manuelle prime sur la demande automatique en cours
+              applyAi(r)
               setAiOpen(false)
               setWeek(1)
             }}
@@ -276,13 +326,19 @@ export function Recipes() {
           <button onClick={() => setAiOpen(true)} className="flex w-full items-center gap-3 rounded-3xl border border-violet/30 bg-[linear-gradient(135deg,rgba(139,123,255,0.14),rgba(255,93,115,0.08))] p-4 text-left transition hover:border-violet/60">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-brand text-ink"><Sparkles size={18} /></span>
             <span className="flex-1">
-              <span className="block font-semibold">Composer avec l’IA</span>
+              <span className="block font-semibold">Affiner avec l’IA</span>
               <span className="block text-sm text-mute">Vos envies, vos ingrédients, une photo du frigo : Claude s’occupe du menu.</span>
             </span>
             <ChevronRight size={18} className="text-mute" />
           </button>
         )}
-        {s.aiMessage && !aiOpen && <p className="mt-3 rounded-2xl bg-violet/10 p-3 text-sm">✨ {s.aiMessage}</p>}
+        {autoLoading ? (
+          <p className="mt-3 flex items-center gap-2 rounded-2xl bg-violet/10 p-3 text-sm" aria-live="polite">
+            <Loader2 size={16} className="animate-spin text-violet" /> Claude compose votre menu sur mesure…
+          </p>
+        ) : (
+          s.aiMessage && !aiOpen && <p className="mt-3 rounded-2xl bg-violet/10 p-3 text-sm">✨ {s.aiMessage}</p>
+        )}
       </div>
       {pool.length < dinners && (
         <p className="mb-6 rounded-2xl bg-coral/10 p-4 text-sm">Seulement {pool.length} recette(s) compatible(s) avec vos critères. Votre cheffe complètera avec des plats sur mesure, ou ajustez vos préférences.</p>

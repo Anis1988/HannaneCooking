@@ -1,3 +1,4 @@
+import type { AdviceResponse } from '../../api/advice'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Cuisine, Diet, Equipment } from '../data/recipes'
@@ -40,6 +41,10 @@ export type BookingState = {
   aiIngredients: string[]
   aiNotes: Record<string, string>
   aiMessage: string
+  aiMenuSig: string
+  aiSituation: string
+  aiAdvice: AdviceResponse | null
+  aiAdviceSig: string
   set: (p: Partial<BookingState>) => void
   setAddress: (p: Partial<Address>) => void
   toggle: <K extends 'diets' | 'cuisines' | 'equipment' | 'options'>(key: K, v: BookingState[K][number]) => void
@@ -70,6 +75,10 @@ const initial = {
   aiIngredients: [] as string[],
   aiNotes: {} as Record<string, string>,
   aiMessage: '',
+  aiMenuSig: '',
+  aiSituation: '',
+  aiAdvice: null as AdviceResponse | null,
+  aiAdviceSig: '',
 }
 
 export const useBooking = create<BookingState>()(

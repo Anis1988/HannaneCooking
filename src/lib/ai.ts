@@ -1,17 +1,21 @@
 import type { MenuRequest, MenuResponse } from '../../api/menu'
+import type { AdviceRequest, AdviceResponse } from '../../api/advice'
 
 export type Photo = { mediaType: 'image/jpeg'; data: string; preview: string }
 
-export async function askMenu(body: MenuRequest): Promise<MenuResponse> {
-  const res = await fetch('/api/menu', {
+async function post<T>(url: string, body: unknown): Promise<T> {
+  const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
   const json = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(json.error || 'Assistant indisponible pour le moment.')
-  return json as MenuResponse
+  return json as T
 }
+
+export const askMenu = (body: MenuRequest) => post<MenuResponse>('/api/menu', body)
+export const askAdvice = (body: AdviceRequest) => post<AdviceResponse>('/api/advice', body)
 
 /** Réduit la photo (max 1024 px, JPEG) avant envoi : plus rapide et moins cher. */
 export async function shrinkPhoto(file: File, max = 1024): Promise<Photo> {

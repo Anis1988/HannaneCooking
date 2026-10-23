@@ -2,25 +2,13 @@ import Anthropic from '@anthropic-ai/sdk'
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod'
 import { z } from 'zod/v4'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { FORMULA_HINTS, MODEL, rateLimited } from './_shared.js'
 import { CUISINES, DIETS, EQUIPMENTS, RECIPES, isCompatible, proposeMenu, type Cuisine, type Diet, type Equipment } from '../src/data/recipes.js'
 
 // Composition de menus par Claude, limitée au catalogue (chaque plat a sa photo).
 // Nécessite la variable d'environnement ANTHROPIC_API_KEY sur Vercel.
 
-const MODEL = 'claude-opus-5-5'
 const MAX_IMAGE_BYTES = 1_500_000
-
-// Limite simple par adresse IP (mémoire de l'instance) pour éviter les abus coûteux.
-const WINDOW_MS = 10 * 60 * 1000
-const MAX_CALLS = 12
-const hits = new Map<string, number[]>()
-function limited(ip: string) {
-  const now = Date.now()
-  const recent = (hits.get(ip) ?? []).filter((t) => now - t < WINDOW_MS)
-  recent.push(now)
-  hits.set(ip, recent)
-  return recent.length > MAX_CALLS
-}
 
 const Body = z.object({
   wishes: z.string().max(600).default(''),
@@ -36,6 +24,7 @@ const Body = z.object({
   cuisines: z.array(z.string()).default([]),
   dinners: z.number().int().min(1).max(7).default(5),
   weeks: z.number().int().min(1).max(5).default(1),
+  formula: z.enum(['semaine', 'mois', 'postpartum']).nullish(),
 })
 export type MenuRequest = z.input<typeof Body>
 
@@ -72,8 +61,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Méthode non autorisée' })
   if (!process.env.ANTHROPIC_API_KEY) return res.status(503).json({ error: 'Assistant IA non configuré' })
 
-  const ip = String(req.headers['x-forwarded-for'] ?? '').split(',')[0].trim() || 'local'
-  if (limited(ip)) return res.status(429).json({ error: 'Trop de demandes, réessayez dans quelques minutes.' })
+  if (rateLimited(req)) return res.status(429).json({ error: 'Trop de demandes, réessayez dans quelques minutes.' })
 
   const parsed = Body.safeParse(req.body)
   if (!parsed.success) return res.status(400).json({ error: 'Requête invalide' })
@@ -92,6 +80,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const brief = [
     `Foyer : ${b.adults} adulte(s), ${b.kids} enfant(s).`,
     `Nombre de semaines : ${b.weeks}. Dîners par semaine : ${count}.`,
+    b.formula ? FORMULA_HINTS[b.formula] : '',
     cuisines.length ? `Cuisines préférées : ${cuisines.join(', ')}.` : '',
     b.ingredients.length ? `Ingrédients à utiliser : ${b.ingredients.join(', ')}.` : '',
     b.wishes.trim() ? `Envies du client : « ${b.wishes.trim()} »` : '',

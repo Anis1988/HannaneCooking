@@ -8,7 +8,7 @@ import { cx } from '../lib/utils'
 const QUICK = ['Riz', 'Pâtes', 'Poulet', 'Courgettes', 'Tomates', 'Pois chiches', 'Œufs', 'Saumon', 'Fromage', 'Épinards']
 
 /** Panneau « Composer avec l'IA » : envies en texte libre, ingrédients à utiliser, photo du frigo. */
-export function AiAssistant({ dinners, weeks, onResult, title = 'Composer avec l’IA', sub }: { dinners: number; weeks: number; onResult: (r: MenuResponse) => void; title?: string; sub?: string }) {
+export function AiAssistant({ dinners, weeks, onResult, title = 'Composer avec l’IA', sub, inBooking = true }: { dinners: number; weeks: number; onResult: (r: MenuResponse) => void; title?: string; sub?: string; inBooking?: boolean }) {
   const s = useBooking()
   const [txt, setTxt] = useState('')
   const [photo, setPhoto] = useState<Photo | null>(null)
@@ -50,6 +50,7 @@ export function AiAssistant({ dinners, weeks, onResult, title = 'Composer avec l
         cuisines: s.cuisines,
         dinners,
         weeks,
+        formula: inBooking ? s.formula : null,
       })
       setDetected(r.detectedIngredients)
       onResult(r)
