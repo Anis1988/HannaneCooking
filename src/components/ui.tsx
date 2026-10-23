@@ -58,10 +58,10 @@ export function Eyebrow({ children }: { children: ReactNode }) {
 
 export function SectionTitle({ eyebrow, title, sub, center = true }: { eyebrow?: string; title: ReactNode; sub?: ReactNode; center?: boolean }) {
   return (
-    <Reveal className={cx('mb-12 max-w-3xl', center && 'mx-auto text-center')}>
+    <Reveal className={cx('mb-8 max-w-3xl sm:mb-12', center && 'mx-auto text-center')}>
       {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-      <h2 className="mt-5 font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">{title}</h2>
-      {sub && <p className="mt-4 text-lg text-mute">{sub}</p>}
+      <h2 className="mt-4 font-display text-[2rem] font-bold leading-[1.05] tracking-tight sm:mt-5 sm:text-5xl">{title}</h2>
+      {sub && <p className="mt-3 text-base text-mute sm:mt-4 sm:text-lg">{sub}</p>}
     </Reveal>
   )
 }

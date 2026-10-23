@@ -6,7 +6,7 @@ import { eur } from '../lib/utils'
 
 export default function Tarifs() {
   return (
-    <Container className="space-y-28 py-10">
+    <Container className="space-y-16 py-6 sm:space-y-28 sm:py-10">
       <section>
         <SectionTitle eyebrow="C’est super simple" title={<>Nos <span className="text-gradient">offres</span></>} sub="Toutes nos formules et tarifs. Prix TTC par semaine, réglés en espèces à chaque venue." />
         <PricingCards />
@@ -54,13 +54,13 @@ export default function Tarifs() {
         </Card>
         <Card className="p-8">
           <Gift className="text-coral" size={30} />
-          <h3 className="mt-4 font-display text-xl font-bold">Envie d’offrir ?</h3>
+          <h3 className="mt-4 font-display text-xl font-bold">Envie d’offrir ?</h3>
           <p className="mt-2 text-mute">Cartes cadeaux à partir de 20 €.</p>
           <Button to="/cartes-cadeaux" variant="soft" className="mt-5">Offrir une carte cadeau</Button>
         </Card>
         <Card className="p-8">
           <HelpCircle className="text-violet" size={30} />
-          <h3 className="mt-4 font-display text-xl font-bold">Besoin d’aide ?</h3>
+          <h3 className="mt-4 font-display text-xl font-bold">Besoin d’aide ?</h3>
           <p className="mt-2 text-mute">Une question sur nos prestations ? Consultez la FAQ ou écrivez-nous sur WhatsApp.</p>
           <Button to="/faq" variant="soft" className="mt-5">Consulter la FAQ</Button>
         </Card>

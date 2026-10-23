@@ -36,6 +36,9 @@ function Navbar() {
     setOpen(false)
   }, [loc.pathname])
   useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : ''
+  }, [open])
+  useEffect(() => {
     const f = () => setScrolled(window.scrollY > 12)
     f()
     window.addEventListener('scroll', f, { passive: true })
@@ -47,7 +50,7 @@ function Navbar() {
       <nav
         className={cx(
           'mx-auto flex max-w-7xl items-center justify-between rounded-full px-4 py-2.5 transition-all duration-500 sm:px-5',
-          scrolled ? 'glass shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]' : 'bg-transparent',
+          scrolled || open ? 'glass bg-ink/70 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]' : 'bg-transparent',
         )}
       >
         <Logo />
@@ -86,26 +89,33 @@ function Navbar() {
       </nav>
       <AnimatePresence>
         {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -12, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -12, scale: 0.98 }}
-            className="glass mx-auto mt-2 max-w-7xl rounded-3xl p-3 lg:hidden"
-          >
-            {NAV.map((n) => (
-              <NavLink
-                key={n.to}
-                to={n.to}
-                end
-                className={({ isActive }) => cx('block rounded-2xl px-4 py-3 text-base font-medium', isActive ? 'bg-white/10' : 'text-white/75')}
-              >
-                {n.label}
-              </NavLink>
-            ))}
-            <Button to="/reservation" className="mt-2 w-full">
-              Réserver ma semaine <ArrowRight size={16} />
-            </Button>
-          </motion.div>
+          <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)} className="fixed inset-0 -z-10 bg-ink/80 backdrop-blur-md lg:hidden" />
+            <motion.div
+              initial={{ opacity: 0, y: -12, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.98 }}
+              className="mx-auto mt-2 max-h-[calc(100dvh-90px)] max-w-7xl overflow-y-auto rounded-3xl border border-line bg-ink-2 p-3 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9)] lg:hidden"
+            >
+              {NAV.map((n) => (
+                <NavLink
+                  key={n.to}
+                  to={n.to}
+                  end
+                  className={({ isActive }) => cx('flex items-center justify-between rounded-2xl px-4 py-3.5 text-lg font-medium', isActive ? 'bg-white/10 text-white' : 'text-white/75')}
+                >
+                  {n.label}
+                  <ArrowRight size={16} className="opacity-40" />
+                </NavLink>
+              ))}
+              <Button to="/reservation" size="lg" className="mt-3 w-full">
+                Réserver ma semaine <ArrowRight size={16} />
+              </Button>
+              <a href={whatsappLink('Bonjour Hannane Cooking !')} target="_blank" rel="noreferrer" className="mt-2 flex items-center justify-center gap-2 rounded-full py-3 text-sm text-mute">
+                <MessageCircle size={16} /> Une question ? WhatsApp
+              </a>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </header>
@@ -114,9 +124,9 @@ function Navbar() {
 
 function Footer() {
   return (
-    <footer className="no-print relative mt-24 border-t border-line">
-      <Container className="grid gap-12 py-16 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-        <div>
+    <footer className="no-print relative mt-16 border-t border-line pb-[env(safe-area-inset-bottom)] sm:mt-24">
+      <Container className="grid grid-cols-2 gap-x-6 gap-y-10 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:py-16">
+        <div className="col-span-2 md:col-span-1">
           <Logo />
           <p className="mt-4 max-w-xs text-sm text-mute">Votre cheffe cuisine vos dîners de la semaine, chez vous, en 2 heures. Sans compte. Paiement en espèces.</p>
           <div className="mt-6 flex gap-2">
@@ -128,16 +138,18 @@ function Footer() {
         </div>
         <FooterCol title="Service" links={[['Réserver', '/reservation'], ['Tarifs', '/tarifs'], ['Menus', '/menus'], ['Post-partum', '/post-partum']]} />
         <FooterCol title="Aide" links={[['FAQ', '/faq'], ['Nous contacter', '/contact'], ['Carte cadeau', '/cartes-cadeaux'], ['Devenir cheffe', '/devenir-cheffe']]} />
-        <div>
+        <div className="col-span-2 md:col-span-1">
           <h3 className="text-sm font-semibold text-white">Nous intervenons à</h3>
-          <ul className="mt-4 space-y-2 text-sm text-mute">{ZONES.map((z) => <li key={z.name}>{z.name}</li>)}</ul>
+          <ul className="mt-4 flex flex-wrap gap-2 text-sm text-mute md:block md:space-y-2">
+            {ZONES.map((z) => <li key={z.name} className="rounded-full border border-line px-3 py-1 md:border-0 md:p-0">{z.name}</li>)}
+          </ul>
         </div>
       </Container>
       <Container className="flex flex-col items-start justify-between gap-3 border-t border-line py-6 text-xs text-mute sm:flex-row sm:items-center">
         <span>© {new Date().getFullYear()} {SITE.name}. Tous droits réservés.</span>
-        <span className="flex flex-wrap gap-x-4 gap-y-2">
-          <Link to="/cgv" className="hover:text-white">CGV</Link>
-          <Link to="/confidentialite" className="hover:text-white">Confidentialité</Link>
+        <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <Link to="/cgv" className="py-2 hover:text-white">CGV</Link>
+          <Link to="/confidentialite" className="py-2 hover:text-white">Confidentialité</Link>
           <span>💶 Paiement en espèces uniquement</span>
         </span>
       </Container>
@@ -149,9 +161,9 @@ function FooterCol({ title, links }: { title: string; links: [string, string][] 
   return (
     <div>
       <h3 className="text-sm font-semibold text-white">{title}</h3>
-      <ul className="mt-4 space-y-2 text-sm text-mute">
+      <ul className="mt-3 text-sm text-mute">
         {links.map(([l, to]) => (
-          <li key={to}><Link to={to} className="hover:text-white">{l}</Link></li>
+          <li key={to}><Link to={to} className="block py-1.5 hover:text-white">{l}</Link></li>
         ))}
       </ul>
     </div>
@@ -174,7 +186,7 @@ export default function Layout() {
       <div className="aurora"><div className="grid-bg" /></div>
       <ScrollToTop />
       <Navbar />
-      <main className="pt-24">
+      <main className="pt-20 sm:pt-24">
         <AnimatePresence mode="wait">
           <motion.div key={inBooking ? 'booking' : pathname} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
             <Outlet />
@@ -188,7 +200,7 @@ export default function Layout() {
           target="_blank"
           rel="noreferrer"
           aria-label="Écrire sur WhatsApp"
-          className="no-print fixed right-4 bottom-4 z-40 grid h-14 w-14 place-items-center rounded-full bg-[#25d366] text-ink shadow-[0_10px_40px_-6px_rgba(37,211,102,0.7)] transition-transform hover:scale-110"
+          className="no-print fixed right-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 grid h-12 w-12 sm:h-14 sm:w-14 place-items-center rounded-full bg-[#25d366] text-ink shadow-[0_10px_40px_-6px_rgba(37,211,102,0.7)] transition-transform hover:scale-110"
         >
           <MessageCircle size={24} />
         </a>

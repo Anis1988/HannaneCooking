@@ -12,9 +12,9 @@ import { cx, eur, longDate, toIso } from '../../lib/utils'
 
 export function StepHead({ kicker, title, sub }: { kicker: string; title: string; sub?: string }) {
   return (
-    <div className="mb-8">
+    <div className="mb-6 sm:mb-8">
       <div className="text-xs font-semibold tracking-widest text-sun uppercase">{kicker}</div>
-      <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">{title}</h1>
+      <h1 className="mt-2 font-display text-[1.75rem] leading-tight font-bold tracking-tight sm:text-4xl">{title}</h1>
       {sub && <p className="mt-2 text-mute">{sub}</p>}
     </div>
   )
@@ -43,7 +43,7 @@ export function People() {
   const { adults, kids, set } = useBooking()
   return (
     <>
-      <StepHead kicker="Question 1 sur 5" title="Combien de personnes seront à table ?" sub="Indiquez le nombre d’adultes et d’enfants qui mangeront les repas." />
+      <StepHead kicker="Question 1 sur 5" title="Combien de personnes seront à table ?" sub="Indiquez le nombre d’adultes et d’enfants qui mangeront les repas." />
       <div className="space-y-4">
         <Counter label="Adultes" sub="À partir de 16 ans" emoji="🧑" value={adults} min={1} max={6} onChange={(n) => set({ adults: n })} />
         <Counter label="Enfants" sub="Entre 2 et 15 ans" emoji="🧒" value={kids} min={0} max={5} onChange={(n) => set({ kids: n })} />
@@ -70,7 +70,7 @@ export function Diet() {
   const quick = ['Arachides', 'Fruits à coque', 'Crustacés', 'Poisson', 'Œuf', 'Champignons', 'Piment', 'Coriandre']
   return (
     <>
-      <StepHead kicker="Question 2 sur 5" title="Quel est votre régime alimentaire ?" sub="Indiquez vos préférences et allergies afin que nous vous proposions les recettes les plus adaptées." />
+      <StepHead kicker="Question 2 sur 5" title="Quel est votre régime alimentaire ?" sub="Indiquez vos préférences et allergies afin que nous vous proposions les recettes les plus adaptées." />
       <div className="grid gap-3 sm:grid-cols-2">
         {DIETS.map((d) => (
           <Chip key={d.id} active={diets.includes(d.id)} onClick={() => toggle('diets', d.id)} className="flex items-center gap-3">
@@ -79,14 +79,14 @@ export function Diet() {
           </Chip>
         ))}
       </div>
-      <h2 className="mt-10 font-display text-xl font-semibold">Y a-t-il des ingrédients à éviter ?</h2>
+      <h2 className="mt-10 font-display text-xl font-semibold">Y a-t-il des ingrédients à éviter ?</h2>
       <div className="mt-3 flex gap-2">
-        <input className="field" value={txt} onChange={(e) => setTxt(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && add()} placeholder="Ex. : coriandre, champignons…" />
+        <input className="field min-w-0" value={txt} onChange={(e) => setTxt(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && add()} placeholder="Ex. : coriandre, champignons…" />
         <button onClick={add} className="glass shrink-0 rounded-2xl px-5 font-semibold hover:bg-white/10">Ajouter</button>
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
         {quick.filter((q) => !avoid.includes(q)).map((q) => (
-          <button key={q} onClick={() => set({ avoid: [...avoid, q] })} className="rounded-full border border-dashed border-line px-3 py-1 text-sm text-mute hover:text-white">+ {q}</button>
+          <button key={q} onClick={() => set({ avoid: [...avoid, q] })} className="rounded-full border border-dashed border-line px-3 py-2 text-sm text-mute hover:text-white">+ {q}</button>
         ))}
       </div>
       {!!avoid.length && (
@@ -107,7 +107,7 @@ export function Tastes() {
   const { cuisines, toggle } = useBooking()
   return (
     <>
-      <StepHead kicker="Question 3 sur 5" title="Quelles cuisines vous font envie ?" sub="Choisissez-en autant que vous voulez : nous en tiendrons compte pour composer votre menu." />
+      <StepHead kicker="Question 3 sur 5" title="Quelles cuisines vous font envie ?" sub="Choisissez-en autant que vous voulez : nous en tiendrons compte pour composer votre menu." />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {CUISINES.map((c) => (
           <Chip key={c.id} active={cuisines.includes(c.id)} onClick={() => toggle('cuisines', c.id)} className="!py-6 text-center">
@@ -125,7 +125,7 @@ export function Kitchen() {
   const { equipment, toggle } = useBooking()
   return (
     <>
-      <StepHead kicker="Question 4 sur 5" title="Qu’avez-vous dans votre cuisine ?" sub="Précisez vos équipements afin que les recettes soient adaptées." />
+      <StepHead kicker="Question 4 sur 5" title="Qu’avez-vous dans votre cuisine ?" sub="Précisez vos équipements afin que les recettes soient adaptées." />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {EQUIPMENTS.map((e) => (
           <Chip key={e.id} active={equipment.includes(e.id)} onClick={() => toggle('equipment', e.id)} className="flex items-center gap-3 !py-4">
@@ -142,22 +142,22 @@ export function FormulaStep() {
   const { formula, dinners, subscription, set } = useBooking()
   return (
     <>
-      <StepHead kicker="Question 5 sur 5" title="Quelle formule souhaitez-vous ?" sub="Testez le service une semaine, ou soufflez un mois entier." />
+      <StepHead kicker="Question 5 sur 5" title="Quelle formule souhaitez-vous ?" sub="Testez le service une semaine, ou soufflez un mois entier." />
       <div className="space-y-4">
         {FORMULAS.map((f) => {
           const active = formula === f.id
           const d = active && f.dinners.includes(dinners) ? dinners : f.dinners[f.dinners.length - 1]
           return (
-            <Card key={f.id} glow={active} className={cx('cursor-pointer p-6 transition', active && 'bg-white/[0.07]')}>
+            <Card key={f.id} glow={active} className={cx('cursor-pointer p-5 transition sm:p-6', active && 'bg-white/[0.07]')}>
               <div role="radio" aria-checked={active} tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && set({ formula: f.id, dinners: d })} onClick={() => set({ formula: f.id, dinners: d })} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex gap-4">
                   <span className={cx('mt-1 grid h-6 w-6 shrink-0 place-items-center rounded-full border-2', active ? 'border-sun bg-sun text-ink' : 'border-white/30')}>{active && <Check size={14} />}</span>
                   <div>
-                    <div className="flex items-center gap-2 font-display text-xl font-bold">{f.name} {f.badge && <span className="rounded-full bg-gradient-brand px-2 py-0.5 text-[10px] text-ink">❤️ {f.badge}</span>}</div>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-xl font-bold">{f.name} {f.badge && <span className="rounded-full bg-gradient-brand px-2 py-0.5 text-[10px] whitespace-nowrap text-ink">❤️ {f.badge}</span>}</div>
                     <ul className="mt-2 space-y-1 text-sm text-mute">{f.perks.map((p) => <li key={p}>· {p}</li>)}</ul>
                   </div>
                 </div>
-                <div className="sm:text-right">
+                <div className="flex items-baseline gap-1.5 pl-10 sm:block sm:pl-0 sm:text-right">
                   <div className="text-xs text-mute">{f.dinners.length > 1 ? 'À partir de' : ''}</div>
                   <div className="font-display text-3xl font-extrabold">{eur(Math.min(...Object.values(f.price)))}</div>
                   <div className="text-xs text-mute">par semaine</div>
@@ -167,7 +167,7 @@ export function FormulaStep() {
                 {active && f.dinners.length > 1 && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                     <div className="mt-6 border-t border-line pt-5">
-                      <p className="mb-3 text-sm font-medium">Combien de dîners par semaine ?</p>
+                      <p className="mb-3 text-sm font-medium">Combien de dîners par semaine ?</p>
                       <div className="grid grid-cols-3 gap-2">
                         {f.dinners.map((n) => (
                           <Chip key={n} active={dinners === n} onClick={() => set({ dinners: n })} className="text-center">
@@ -271,12 +271,12 @@ export function Recipes() {
         <AnimatePresence mode="popLayout">
           {menu.map((r, i) => (
             <motion.div key={`${w}-${i}-${r.id}`} layout initial={{ opacity: 0, rotateX: -30 }} animate={{ opacity: 1, rotateX: 0 }} exit={{ opacity: 0 }} transition={{ delay: i * 0.05 }} className="glass group flex overflow-hidden rounded-3xl">
-              <img src={r.img} alt="" className="h-auto w-28 shrink-0 object-cover sm:w-32" />
+              <img src={r.img} alt="" className="h-auto w-24 shrink-0 object-cover sm:w-32" />
               <div className="flex flex-1 flex-col p-4">
                 <span className="text-xs text-sun">Dîner {i + 1} · {r.tag}</span>
-                <span className="mt-1 leading-snug font-semibold">{r.name}</span>
+                <span className="mt-1 text-[15px] leading-snug font-semibold sm:text-base">{r.name}</span>
                 <span className="mt-1 text-xs text-mute">{CUISINES.find((c) => c.id === r.cuisine)?.label}{r.kids ? ' · Super kids' : ''}</span>
-                <button onClick={() => setSwap(i)} className="mt-auto flex items-center gap-1.5 self-start pt-3 text-sm text-white/70 hover:text-white"><RefreshCw size={14} /> Changer</button>
+                <button onClick={() => setSwap(i)} className="mt-auto -ml-2 flex items-center gap-1.5 self-start rounded-full px-2 py-2 text-sm text-white/70 hover:bg-white/5 hover:text-white"><RefreshCw size={14} /> Changer</button>
               </div>
             </motion.div>
           ))}
@@ -286,7 +286,7 @@ export function Recipes() {
       <AnimatePresence>
         {swap !== null && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center" onClick={() => setSwap(null)}>
-            <motion.div initial={{ y: 60 }} animate={{ y: 0 }} exit={{ y: 60 }} onClick={(e) => e.stopPropagation()} className="glass max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-ink-2/95 p-6 sm:rounded-3xl">
+            <motion.div initial={{ y: 60 }} animate={{ y: 0 }} exit={{ y: 60 }} onClick={(e) => e.stopPropagation()} className="max-h-[85dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl border border-line bg-ink-2 p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:rounded-3xl sm:p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-display text-xl font-bold">Remplacer le dîner {swap + 1}</h3>
                 <button onClick={() => setSwap(null)} className="glass grid h-9 w-9 place-items-center rounded-full" aria-label="Fermer"><X size={16} /></button>
@@ -312,18 +312,19 @@ export function Options() {
   const { options, toggle } = useBooking()
   return (
     <>
-      <StepHead kicker="Planification · étape 1 sur 2" title="🥐 Quelles options ?" sub="Sélectionnez autant d’options que vous le souhaitez." />
+      <StepHead kicker="Planification · étape 1 sur 2" title="🥐 Quelles options ?" sub="Sélectionnez autant d’options que vous le souhaitez." />
       <div className="space-y-3">
         {OPTIONS.map((o) => {
           const on = options.includes(o.id)
           return (
-            <Chip key={o.id} active={on} onClick={() => toggle('options', o.id)} className="flex w-full items-center gap-4 !p-5">
-              <span className="text-3xl">{o.emoji}</span>
-              <span className="flex-1">
+            <Chip key={o.id} active={on} onClick={() => toggle('options', o.id)} className="flex w-full items-start gap-3 !p-4 sm:items-center sm:gap-4 sm:!p-5">
+              <span className="text-2xl sm:text-3xl">{o.emoji}</span>
+              <span className="min-w-0 flex-1">
                 <span className="block font-semibold">{o.name}</span>
                 <span className="mt-0.5 block text-sm text-mute">{o.desc}</span>
+                <span className="mt-2 block font-display font-bold text-sun sm:hidden">+{eur(o.price)} <span className="font-sans text-xs font-normal text-mute">/ semaine</span></span>
               </span>
-              <span className="text-right whitespace-nowrap">
+              <span className="hidden text-right whitespace-nowrap sm:block">
                 <span className="block font-display font-bold">+{eur(o.price)}</span>
                 <span className="text-xs text-mute">/ semaine</span>
               </span>
@@ -376,7 +377,7 @@ export function Schedule() {
 
   return (
     <>
-      <StepHead kicker="Planification · étape 2 sur 2" title="📅 Quand vient votre cheffe ?" sub={`Choisissez le jour de la première venue (au moins ${MIN_NOTICE_HOURS} h à l’avance) et votre créneau.`} />
+      <StepHead kicker="Planification · étape 2 sur 2" title="📅 Quand vient votre cheffe ?" sub={`Choisissez le jour de la première venue (au moins ${MIN_NOTICE_HOURS} h à l’avance) et votre créneau.`} />
       <div className="grid gap-6 lg:grid-cols-[1fr_260px]">
         <Card className="p-5">
           <div className="mb-4 flex items-center justify-between">
@@ -398,7 +399,7 @@ export function Schedule() {
                   disabled={off}
                   onClick={() => set({ startDate: iso })}
                   className={cx(
-                    'aspect-square rounded-xl text-sm font-medium transition',
+                    'aspect-square min-h-10 rounded-xl text-sm font-medium transition',
                     off && 'text-white/15',
                     !off && !sel && 'hover:bg-white/10',
                     sel && 'bg-gradient-brand font-bold text-ink shadow-[0_0_20px_-4px_rgba(255,93,115,0.8)]',
@@ -438,7 +439,7 @@ export function AddressStep({ tried }: { tried: boolean }) {
   const cpErr = a.cp.length === 5 && !zone
   return (
     <>
-      <StepHead kicker="Adresse · étape 1 sur 2" title="📍 Où aura lieu la prestation ?" sub="La prestation se déroule à votre domicile (résidence principale ou secondaire)." />
+      <StepHead kicker="Adresse · étape 1 sur 2" title="📍 Où aura lieu la prestation ?" sub="La prestation se déroule à votre domicile (résidence principale ou secondaire)." />
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <Field label="Adresse" required error={tried && !a.street.trim() ? 'Requis' : undefined}>
@@ -471,7 +472,7 @@ export function ContactStep({ tried }: { tried: boolean }) {
   const { address: a, setAddress } = useBooking()
   return (
     <>
-      <StepHead kicker="Adresse · étape 2 sur 2" title="👋 Qui êtes-vous ?" sub="Pas de compte à créer : juste de quoi vous envoyer la confirmation." />
+      <StepHead kicker="Adresse · étape 2 sur 2" title="👋 Qui êtes-vous ?" sub="Pas de compte à créer : juste de quoi vous envoyer la confirmation." />
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Prénom" required error={tried && !a.firstName.trim() ? 'Requis' : undefined}>
           <input className="field" autoComplete="given-name" value={a.firstName} onChange={(e) => setAddress({ firstName: e.target.value })} />
@@ -533,7 +534,7 @@ export function Validation({ tried }: { tried: boolean }) {
         <Field label="Carte cadeau (facultatif)" hint="Votre code sera vérifié par notre équipe et déduit du montant.">
           <input className="field font-mono uppercase" value={s.giftCode} onChange={(e) => s.set({ giftCode: e.target.value })} placeholder="CAD-XXXXXX" />
         </Field>
-        <Field label="Un commentaire sur votre réservation ?">
+        <Field label="Un commentaire sur votre réservation ?">
           <textarea rows={2} className="field" value={s.comment} onChange={(e) => s.set({ comment: e.target.value })} />
         </Field>
       </div>

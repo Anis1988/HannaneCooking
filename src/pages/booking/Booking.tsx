@@ -99,9 +99,9 @@ export default function Booking() {
   }
 
   return (
-    <Container className="pb-40">
+    <Container className="pb-36 sm:pb-40">
       {/* barre de progression mobile */}
-      <div className="sticky top-[76px] z-30 -mx-4 mb-6 px-4 py-2 backdrop-blur-xl lg:hidden">
+      <div className="sticky top-[68px] z-30 -mx-4 mb-5 bg-ink/80 px-4 py-2.5 backdrop-blur-xl sm:top-[76px] lg:hidden">
         <div className="mb-1.5 flex justify-between text-xs text-mute">
           <span className="font-semibold text-white">{step.section}</span>
           <span>{idx + 1} / {STEPS.length}</span>
@@ -155,8 +155,8 @@ export default function Booking() {
       </div>
 
       {/* barre d'action */}
-      <div className="no-print fixed inset-x-0 bottom-0 z-40 p-3 sm:p-4">
-        <div className="glass mx-auto flex max-w-3xl items-center gap-3 rounded-full bg-ink/70 p-2 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.9)]">
+      <div className="no-print fixed inset-x-0 bottom-0 z-40 border-t border-line bg-ink/95 px-3 pt-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))] backdrop-blur-xl sm:border-0 sm:bg-transparent sm:p-4 sm:backdrop-blur-none">
+        <div className="mx-auto flex max-w-3xl items-center gap-3 sm:glass sm:rounded-full sm:bg-ink/80 sm:p-2 sm:shadow-[0_20px_60px_-10px_rgba(0,0,0,0.9)]">
           <button
             onClick={() => (idx > 0 ? nav(`/reservation/${STEPS[idx - 1].path}`) : nav('/'))}
             className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white/5 hover:bg-white/10"
@@ -165,7 +165,7 @@ export default function Booking() {
             <ArrowLeft size={18} />
           </button>
           <MiniPrice />
-          <Button onClick={next} size="lg" className="ml-auto !px-6" disabled={sending}>
+          <Button onClick={next} size="lg" className="ml-auto shrink-0 !px-5 sm:!px-6" disabled={sending}>
             {sending ? <Loader2 className="animate-spin" size={18} /> : isLast ? <>Confirmer <Check size={18} /></> : <>Continuer <ArrowRight size={18} /></>}
           </Button>
         </div>

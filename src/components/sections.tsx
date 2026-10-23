@@ -27,7 +27,7 @@ export function PricingCards({ only }: { only?: FormulaId[] }) {
         const featured = !!f.badge
         return (
           <Reveal key={f.id} delay={i * 0.08}>
-            <Card glow={featured} className={cx('relative flex h-full flex-col p-7', featured && 'bg-white/[0.06]')}>
+            <Card glow={featured} className={cx('relative flex h-full flex-col p-6 sm:p-7', featured && 'bg-white/[0.06]')}>
               {f.badge && (
                 <span className="absolute -top-3 left-7 rounded-full bg-gradient-brand px-3 py-1 text-xs font-bold text-ink">{f.badge} ❤️</span>
               )}
@@ -121,7 +121,7 @@ export function FaqList({ limit, withSearch }: { limit?: number; withSearch?: bo
           const isOpen = open === f.q
           return (
             <Card key={f.q} className={cx('overflow-hidden transition-colors', isOpen && 'bg-white/[0.07]')}>
-              <button onClick={() => setOpen(isOpen ? null : f.q)} className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left" aria-expanded={isOpen}>
+              <button onClick={() => setOpen(isOpen ? null : f.q)} className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left sm:px-6 sm:py-5" aria-expanded={isOpen}>
                 <span>
                   <span className="mb-1 block text-xs font-medium tracking-wider text-sun/80 uppercase">{f.cat}</span>
                   <span className="font-medium">{f.q}</span>
@@ -131,7 +131,7 @@ export function FaqList({ limit, withSearch }: { limit?: number; withSearch?: bo
               <AnimatePresence initial={false}>
                 {isOpen && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}>
-                    <p className="px-6 pb-6 text-mute">{f.a}</p>
+                    <p className="px-5 pb-5 text-mute sm:px-6 sm:pb-6">{f.a}</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -146,9 +146,9 @@ export function FaqList({ limit, withSearch }: { limit?: number; withSearch?: bo
 
 export function Reviews() {
   return (
-    <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-      {REVIEWS.map((r, i) => (
-        <Reveal key={r.name} delay={i * 0.06}>
+    <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
+      {REVIEWS.map((r) => (
+        <div key={r.name} className="w-[82%] shrink-0 snap-center sm:w-auto">
           <Card className="flex h-full flex-col p-6">
             <Quote className="text-sun/70" size={22} />
             <div className="mt-3 flex gap-0.5 text-sun">{Array.from({ length: 5 }, (_, k) => <Star key={k} size={14} fill="currentColor" />)}</div>
@@ -161,10 +161,10 @@ export function Reviews() {
               </div>
             </div>
           </Card>
-        </Reveal>
+        </div>
       ))}
       {REVIEWS_ARE_SAMPLES && (
-        <p className="col-span-full text-center text-xs text-mute/70"><Sparkles size={12} className="mr-1 inline" />Avis d’exemple — à remplacer par vos retours clients.</p>
+        <p className="hidden text-center text-xs text-mute/70 sm:col-span-full sm:block"><Sparkles size={12} className="mr-1 inline" />Avis d’exemple — à remplacer par vos retours clients.</p>
       )}
     </div>
   )
@@ -173,11 +173,11 @@ export function Reviews() {
 export function CtaBanner({ title, sub }: { title: string; sub: string }) {
   return (
     <Reveal>
-      <div className="relative overflow-hidden rounded-[2.5rem] border border-line p-10 text-center sm:p-16">
+      <div className="relative overflow-hidden rounded-[2rem] border border-line px-6 py-10 text-center sm:rounded-[2.5rem] sm:p-16">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(600px_300px_at_50%_0%,rgba(255,181,71,0.25),transparent),radial-gradient(500px_300px_at_80%_100%,rgba(139,123,255,0.25),transparent)]" />
-        <h2 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">{title}</h2>
+        <h2 className="font-display text-3xl font-bold tracking-tight sm:text-5xl">{title}</h2>
         <p className="mx-auto mt-4 max-w-xl text-lg text-mute">{sub}</p>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
+        <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap sm:justify-center">
           <Button to="/reservation" size="lg">Réserver ma semaine</Button>
           <Button to="/tarifs" size="lg" variant="ghost">Voir les tarifs</Button>
         </div>

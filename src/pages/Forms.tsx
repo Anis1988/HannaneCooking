@@ -24,10 +24,10 @@ export function Contact() {
     setDone({ ref, summary, sent: await submit('Contact', ref, summary, f) })
   }
 
-  if (done) return <Container className="py-10"><SuccessPanel title="Message prêt !" refId={done.ref} summary={done.summary} subject={`Message ${done.ref}`} sent={done.sent} /></Container>
+  if (done) return <Container className="py-6 sm:py-10"><SuccessPanel title="Message prêt !" refId={done.ref} summary={done.summary} subject={`Message ${done.ref}`} sent={done.sent} /></Container>
 
   return (
-    <Container className="py-10">
+    <Container className="py-6 sm:py-10">
       <SectionTitle eyebrow="On vous répond vite" title={<>Nous <span className="text-gradient">contacter</span></>} />
       <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
         <div className="space-y-4">
@@ -75,10 +75,10 @@ export function BecomeChef() {
     const summary = `👩‍🍳 Candidature cheffe ${ref}\n${f.name} — ${f.city}\n${f.email} · ${f.phone}\nProfil : ${f.level}\n\n${f.about}`
     setDone({ ref, summary, sent: await submit('Candidature cheffe', ref, summary, f) })
   }
-  if (done) return <Container className="py-10"><SuccessPanel title="Candidature prête !" refId={done.ref} summary={done.summary} subject={`Candidature ${done.ref}`} sent={done.sent} /></Container>
+  if (done) return <Container className="py-6 sm:py-10"><SuccessPanel title="Candidature prête !" refId={done.ref} summary={done.summary} subject={`Candidature ${done.ref}`} sent={done.sent} /></Container>
 
   return (
-    <Container className="py-10">
+    <Container className="py-6 sm:py-10">
       <SectionTitle eyebrow="Rejoignez l’équipe ❤️‍🔥" title={<>Devenez <span className="text-gradient">cheffe partenaire</span></>} sub="Passionnée de cuisine, professionnelle ou amatrice ? Formez-vous au batch cooking à domicile et vivez de votre passion, à votre rythme." />
       <Card className="mx-auto max-w-3xl p-6 sm:p-8">
         <div className="grid gap-4 sm:grid-cols-2">

@@ -57,7 +57,7 @@ export default function GiftCards() {
 
   if (done)
     return (
-      <Container className="py-10">
+      <Container className="py-6 sm:py-10">
         <SuccessPanel title="Demande de carte cadeau reçue !" refId={done.ref} summary={done.summary} subject={`Carte cadeau ${done.ref}`} sent={done.sent}>
           <p className="mt-4 text-mute">Nous vous contactons pendant nos horaires d’ouverture pour organiser le règlement de <b className="text-white">{eur(amount)}</b> en espèces. Dès réception, la carte est envoyée par e-mail.</p>
         </SuccessPanel>
@@ -69,7 +69,7 @@ export default function GiftCards() {
   )
 
   return (
-    <Container className="py-10">
+    <Container className="py-6 sm:py-10">
       <SectionTitle eyebrow="Du temps offert, fait maison" title={<>Construisez votre <span className="text-gradient">carte cadeau</span></>} />
       <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
         <div className="space-y-6">

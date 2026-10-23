@@ -2,13 +2,13 @@ export type Diet = 'vege' | 'vegan' | 'sansPorc' | 'sansGluten' | 'sansLactose' 
 export type Cuisine = 'francaise' | 'mediterraneenne' | 'orientale' | 'asiatique' | 'italienne' | 'indienne'
 export type Equipment = 'four' | 'micro' | 'friteuse' | 'plaques' | 'airfryer' | 'mixer' | 'thermomix'
 
-export const DIETS: { id: Diet; label: string; emoji: string }[] = [
-  { id: 'vege', label: 'Végétarien', emoji: '🥕' },
-  { id: 'vegan', label: 'Végétalien / Vegan', emoji: '🌱' },
-  { id: 'sansPorc', label: 'Sans porc', emoji: '🚫' },
-  { id: 'sansGluten', label: 'Sans gluten', emoji: '🌾' },
-  { id: 'sansLactose', label: 'Sans produit laitier', emoji: '🥛' },
-  { id: 'pesco', label: 'Pesco-végétarien', emoji: '🐟' },
+export const DIETS: { id: Diet; label: string; short: string; emoji: string }[] = [
+  { id: 'vege', label: 'Végétarien', short: 'Végé', emoji: '🥕' },
+  { id: 'vegan', label: 'Végétalien / Vegan', short: 'Vegan', emoji: '🌱' },
+  { id: 'sansPorc', label: 'Sans porc', short: 'Sans porc', emoji: '🚫' },
+  { id: 'sansGluten', label: 'Sans gluten', short: 'Sans gluten', emoji: '🌾' },
+  { id: 'sansLactose', label: 'Sans produit laitier', short: 'Sans lactose', emoji: '🥛' },
+  { id: 'pesco', label: 'Pesco-végétarien', short: 'Pesco', emoji: '🐟' },
 ]
 
 export const CUISINES: { id: Cuisine; label: string; emoji: string }[] = [
