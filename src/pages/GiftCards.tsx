@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Banknote } from 'lucide-react'
 import { GIFT_PRESETS } from '../data/formulas'
 import { Button, Card, Chip, Container, SectionTitle } from '../components/ui'
@@ -10,7 +10,9 @@ import { eur, makeRef, submit } from '../lib/utils'
 const empty = { from: '', email: '', to: '', message: '', firstName: '', lastName: '', street: '', cp: '', city: '', phone: '' }
 
 export default function GiftCards() {
-  const [preset, setPreset] = useState<string>('semaine')
+  const [params] = useSearchParams()
+  // ?formule=postpartum (lien depuis la page Post-partum) présélectionne la bonne carte
+  const [preset, setPreset] = useState<string>(() => GIFT_PRESETS.find((p) => p.id === params.get('formule'))?.id ?? 'semaine')
   const [custom, setCustom] = useState('50')
   const [f, setF] = useState(empty)
   const [ok, setOk] = useState(false)
