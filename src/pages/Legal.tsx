@@ -6,7 +6,7 @@ function Page({ title, children }: { title: string; children: ReactNode }) {
   return (
     <Container className="py-10">
       <Card className="mx-auto max-w-3xl p-8 sm:p-12">
-        <h1 className="font-display text-4xl font-bold">{title}</h1>
+        <h1 className="font-display text-4xl font-semibold">{title}</h1>
         <div className="mt-8 space-y-5 leading-relaxed text-white/80 [&_h2]:mt-8 [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-white">{children}</div>
       </Card>
     </Container>
@@ -46,7 +46,7 @@ export function Privacy() {
 export function NotFound() {
   return (
     <Container className="py-24 text-center">
-      <div className="font-display text-8xl font-extrabold text-gradient">404</div>
+      <div className="font-display text-8xl font-semibold text-heat">404</div>
       <p className="mt-4 text-mute">Cette page est partie faire les courses.</p>
       <Button to="/" className="mt-8">Retour à l’accueil</Button>
     </Container>

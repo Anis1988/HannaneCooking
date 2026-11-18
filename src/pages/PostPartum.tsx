@@ -14,9 +14,9 @@ export default function PostPartum() {
     <>
       <Container className="grid items-center gap-10 py-6 sm:gap-12 sm:py-10 lg:grid-cols-2">
         <Reveal>
-          <Eyebrow>Post-partum chill · 5 semaines</Eyebrow>
-          <h1 className="mt-5 font-display text-[2.6rem] leading-[1.02] font-extrabold tracking-tight sm:mt-6 sm:text-6xl">
-            Bien manger <span className="text-gradient">compte double.</span>
+          <Eyebrow tone="violet">Post-partum chill, 5 semaines</Eyebrow>
+          <h1 className="mt-5 font-display text-[2.4rem] leading-[1.04] font-semibold tracking-[-0.04em] sm:mt-6 sm:text-6xl">
+            Bien manger compte double.
           </h1>
           <p className="mt-6 text-lg text-mute">
             Les nuits sont hachées, les journées filent, et vous n’avez qu’une envie : profiter de bébé. Pendant 5 semaines, votre cheffe vient cuisiner chez vous. Vous, vous vous concentrez sur l’essentiel.
@@ -34,13 +34,13 @@ export default function PostPartum() {
       </Container>
 
       <Container className="py-16 sm:py-24">
-        <SectionTitle title={<>Pensé pour <span className="text-gradient">les jeunes parents</span></>} />
+        <SectionTitle title="Pensé pour les jeunes parents" />
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {perks.map((p, i) => (
             <Reveal key={p.t} delay={i * 0.08}>
               <Card className="h-full p-7">
-                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-brand text-ink">{p.icon}</span>
-                <h3 className="mt-5 font-display text-lg font-bold">{p.t}</h3>
+                <span className="grid h-12 w-12 place-items-center rounded-full bg-sun text-ink">{p.icon}</span>
+                <h3 className="mt-5 font-display text-lg font-semibold">{p.t}</h3>
                 <p className="mt-2 text-sm text-mute">{p.d}</p>
               </Card>
             </Reveal>

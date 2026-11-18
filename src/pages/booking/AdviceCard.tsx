@@ -39,30 +39,30 @@ export function AdviceCard() {
   // prix affichés pour que le client voie l'effet du conseil avant de l'appliquer
   const cur = pricing(s)
   const next = a ? pricing({ formula: a.formula, dinners: a.dinners, options: s.options }) : null
-  const priceLine = (p: NonNullable<typeof next>) => `${eur(p.weekly)} / semaine${p.f.weeks > 1 ? ` · ${eur(p.total)} sur ${p.f.weeks} semaines` : ''}`
+  const priceLine = (p: NonNullable<typeof next>) => `${eur(p.weekly)} / semaine${p.f.weeks > 1 ? `, ${eur(p.total)} sur ${p.f.weeks} semaines` : ''}`
   // le conseil est un bonus : en cas d'échec on n'encombre pas l'écran
   if (error && !a) return null
 
   return (
-    <div className="mb-5 rounded-3xl border border-violet/30 bg-[linear-gradient(135deg,rgba(139,123,255,0.14),rgba(255,93,115,0.08))] p-5">
+    <div className="mb-5 rounded-[22px] border border-violet/35 bg-[radial-gradient(120%_140%_at_0%_0%,rgba(123,92,255,0.2),transparent_60%)] p-5">
       <div className="flex items-start gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-brand text-ink">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-violet/20 text-[#c9bcff] ring-1 ring-violet/50">
           {loading ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
         </span>
         <div className="min-w-0 flex-1" aria-live="polite">
-          <div className="text-xs font-semibold tracking-widest text-violet uppercase">Conseil de l’IA</div>
+          <div className="text-sm font-medium text-[#b9a8ff]">Conseil de l’IA</div>
           {loading || !a || !f ? (
             <div className="mt-2 space-y-2">
-              <p className="text-sm text-mute">Claude analyse votre foyer…</p>
+              <p className="text-sm text-mute">L’IA analyse votre foyer…</p>
               <div className="h-3 w-3/4 animate-pulse rounded-full bg-white/10" />
               <div className="h-3 w-1/2 animate-pulse rounded-full bg-white/10" />
             </div>
           ) : (
             <>
-              <p className="mt-1 font-display text-lg leading-snug font-bold">{a.headline}</p>
+              <p className="mt-1 font-display text-lg leading-snug font-semibold tracking-tight">{a.headline}</p>
               <p className="mt-1 text-sm text-white/80">{a.reason}</p>
               <p className="mt-2 text-sm">
-                👉 <b>{f.name}</b> · {a.dinners} dîners / semaine{a.subscription !== 'none' ? ` · abonnement ${a.subscription} mois` : ''}
+                <b>{f.name}</b>, {a.dinners} dîners par semaine{a.subscription !== 'none' ? `, abonnement ${a.subscription} mois` : ''}
               </p>
               {next && (
                 <p className="mt-1 text-sm">
@@ -80,7 +80,7 @@ export function AdviceCard() {
             type="button"
             disabled={applied}
             onClick={() => s.set({ formula: a.formula, dinners: a.dinners, subscription: a.subscription })}
-            className={cx('rounded-full px-5 py-2.5 text-sm font-semibold', applied ? 'bg-mint/15 text-mint' : 'bg-gradient-brand text-ink')}
+            className={cx('rounded-full px-5 py-2.5 text-sm font-semibold', applied ? 'bg-mint/15 text-mint' : 'bg-sun text-ink')}
           >
             {applied ? (
               <>

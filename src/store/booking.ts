@@ -36,6 +36,10 @@ export type BookingState = {
   giftCode: string
   accepted: boolean
   confirmed: { ref: string; summary: string; sent: boolean } | null
+  /** Dernière étape visitée, pour proposer de reprendre la réservation. */
+  lastStep: string
+  /** Plats demandés explicitement (fiche plat, favoris, IA) : gardés dans le menu. */
+  pinned: string[]
   // Assistant IA
   aiWishes: string
   aiIngredients: string[]
@@ -71,6 +75,8 @@ const initial = {
   giftCode: '',
   accepted: false,
   confirmed: null as BookingState['confirmed'],
+  lastStep: '',
+  pinned: [] as string[],
   aiWishes: '',
   aiIngredients: [] as string[],
   aiNotes: {} as Record<string, string>,

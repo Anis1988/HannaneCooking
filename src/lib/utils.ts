@@ -54,3 +54,34 @@ function flatten(o: unknown, prefix = ''): Record<string, string> {
   } else out[prefix || 'value'] = Array.isArray(o) ? o.join(', ') : String(o ?? '')
   return out
 }
+
+/** Partage natif (mobile) ou copie du lien. */
+export async function share(data: { title: string; text?: string; url?: string }): Promise<'shared' | 'copied' | 'failed'> {
+  try {
+    if ('share' in navigator) {
+      await navigator.share(data)
+      return 'shared'
+    }
+    await navigator.clipboard.writeText([data.text, data.url].filter(Boolean).join(' '))
+    return 'copied'
+  } catch {
+    return 'failed'
+  }
+}
+
+/** Historique local des demandes (réservations, cartes cadeaux, messages). */
+export function getSubmissions(): Submission[] {
+  try {
+    return JSON.parse(localStorage.getItem('hc-submissions') || '[]') as Submission[]
+  } catch {
+    return []
+  }
+}
+
+export function removeSubmission(ref: string) {
+  try {
+    localStorage.setItem('hc-submissions', JSON.stringify(getSubmissions().filter((s) => s.ref !== ref)))
+  } catch {
+    /* stockage indisponible */
+  }
+}

@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react'
-import { Camera, Loader2, Sparkles, X } from 'lucide-react'
+import { Camera, Loader2, Mic, MicOff, Sparkles, X } from 'lucide-react'
 import type { MenuResponse } from '../../api/menu'
 import { askMenu, shrinkPhoto, type Photo } from '../lib/ai'
 import { useBooking } from '../store/booking'
 import { cx } from '../lib/utils'
+import { useDictation } from '../lib/speech'
 
 const QUICK = ['Riz', 'Pâtes', 'Poulet', 'Courgettes', 'Tomates', 'Pois chiches', 'Œufs', 'Saumon', 'Fromage', 'Épinards']
 
@@ -16,6 +17,10 @@ export function AiAssistant({ dinners, weeks, onResult, title = 'Composer avec l
   const [error, setError] = useState('')
   const [detected, setDetected] = useState<string[]>([])
   const fileRef = useRef<HTMLInputElement>(null)
+  const dictation = useDictation((t) => {
+    const cur = useBooking.getState().aiWishes
+    s.set({ aiWishes: ((cur ? cur + ' ' : '') + t).slice(0, 600) })
+  })
 
   const addIngredients = (raw: string) => {
     const parts = raw.split(',').map((x) => x.trim()).filter(Boolean)
@@ -62,22 +67,34 @@ export function AiAssistant({ dinners, weeks, onResult, title = 'Composer avec l
   }
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-violet/30 bg-[linear-gradient(135deg,rgba(139,123,255,0.14),rgba(255,93,115,0.08))] p-5 sm:p-6">
+    <div className="relative overflow-hidden rounded-[26px] border border-violet/35 bg-[radial-gradient(120%_120%_at_0%_0%,rgba(123,92,255,0.2),transparent_55%),radial-gradient(100%_100%_at_100%_100%,rgba(255,106,61,0.1),transparent_60%),rgba(255,255,255,0.02)] p-5 sm:p-7">
       <div className="flex items-center gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-brand text-ink"><Sparkles size={18} /></span>
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-violet/20 text-[#c9bcff] ring-1 ring-violet/50"><Sparkles size={18} /></span>
         <div>
-          <h3 className="font-display text-lg font-bold">{title}</h3>
-          <p className="text-sm text-mute">{sub ?? 'Dites-nous vos envies et ce que vous avez déjà : Claude compose le menu.'}</p>
+          <h3 className="font-display text-lg font-semibold tracking-tight">{title}</h3>
+          <p className="text-sm text-mute">{sub ?? 'Dites ou écrivez vos envies et ce que vous avez déjà : l’IA compose le menu.'}</p>
         </div>
       </div>
 
-      <textarea
-        rows={2}
-        value={s.aiWishes}
-        onChange={(e) => s.set({ aiWishes: e.target.value.slice(0, 600) })}
-        placeholder="Ex. : « mon fils n’aime pas les légumes verts, on a envie de plats réconfortants et pas trop épicés »"
-        className="field mt-4"
-      />
+      <div className="relative mt-4">
+        <textarea
+          rows={2}
+          value={s.aiWishes}
+          onChange={(e) => s.set({ aiWishes: e.target.value.slice(0, 600) })}
+          placeholder={dictation.listening ? 'Je vous écoute…' : 'Ex. : « mon fils n’aime pas les légumes verts, on a envie de plats réconfortants et pas trop épicés »'}
+          className={cx('field', dictation.supported && '!pr-14')}
+        />
+        {dictation.supported && (
+          <button
+            type="button"
+            onClick={dictation.toggle}
+            className={cx('absolute top-2 right-2 grid h-10 w-10 place-items-center rounded-full', dictation.listening ? 'animate-pulse bg-coral text-ink' : 'bg-white/[0.06] text-white/80 hover:bg-white/10')}
+            aria-label={dictation.listening ? 'Arrêter la dictée' : 'Dicter mes envies'}
+          >
+            {dictation.listening ? <MicOff size={18} /> : <Mic size={18} />}
+          </button>
+        )}
+      </div>
 
       <p className="mt-4 mb-2 text-sm font-medium">Ingrédients à utiliser</p>
       <div className="flex gap-2">
@@ -114,22 +131,22 @@ export function AiAssistant({ dinners, weeks, onResult, title = 'Composer avec l
             <Camera size={16} /> Photo de mon frigo
           </button>
         )}
-        <span className="text-xs text-mute">Facultatif : Claude repère vos ingrédients sur la photo.</span>
+        <span className="text-xs text-mute">Facultatif : l’IA repère vos ingrédients sur la photo.</span>
       </div>
 
       <button
         type="button"
         onClick={run}
         disabled={loading}
-        className={cx('shine mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-3.5 font-semibold text-ink transition', loading && 'opacity-70')}
+        className={cx('mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-sun px-6 font-semibold text-ink shadow-[0_10px_34px_-12px_rgba(255,106,61,0.85)] transition hover:bg-hot', loading && 'opacity-70')}
       >
-        {loading ? <><Loader2 size={18} className="animate-spin" /> Claude compose votre menu…</> : <><Sparkles size={18} /> Composer mon menu avec l’IA</>}
+        {loading ? <><Loader2 size={18} className="animate-spin" /> L’IA compose votre menu…</> : <><Sparkles size={18} /> Composer mon menu avec l’IA</>}
       </button>
 
       {error && <p role="alert" className="mt-3 rounded-2xl bg-coral/10 p-3 text-sm text-coral">{error}</p>}
       {!!detected.length && (
         <p className="mt-3 text-sm text-mute">
-          📸 Repéré sur la photo : <span className="text-white">{detected.join(', ')}</span>
+          Repéré sur la photo : <span className="text-white">{detected.join(', ')}</span>
         </p>
       )}
     </div>

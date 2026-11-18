@@ -70,20 +70,20 @@ export default function GiftCards() {
 
   return (
     <Container className="py-6 sm:py-10">
-      <SectionTitle eyebrow="Du temps offert, fait maison" title={<>Construisez votre <span className="text-gradient">carte cadeau</span></>} />
+      <SectionTitle level={1} title="Composez votre carte cadeau" sub="Des soirées libres et de vrais repas faits maison, à offrir. Réglée en espèces, valable un an." />
       <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
         <div className="space-y-6">
           <Card className="p-6 sm:p-8">
-            <h3 className="font-display text-lg font-bold">1. Choisissez le cadeau</h3>
+            <h3 className="font-display text-lg font-semibold">1. Choisissez le cadeau</h3>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {GIFT_PRESETS.map((p) => (
                 <Chip key={p.id} active={preset === p.id} onClick={() => setPreset(p.id)} className="!p-5">
-                  <span className="block font-display text-base font-bold">{p.name} — {p.id === 'mois' ? 'dès ' : ''}{eur(p.amount)}</span>
+                  <span className="block font-display text-base font-semibold">{p.name}, {p.id === 'mois' ? 'dès ' : ''}{eur(p.amount)}</span>
                   <span className="mt-1 block text-xs text-mute">{p.desc}</span>
                 </Chip>
               ))}
               <Chip active={preset === 'custom'} onClick={() => setPreset('custom')} className="!p-5">
-                <span className="block font-display text-base font-bold">Un montant personnalisé</span>
+                <span className="block font-display text-base font-semibold">Un montant personnalisé</span>
                 <span className="mt-1 block text-xs text-mute">Le montant que vous souhaitez offrir, dès 20 €.</span>
               </Chip>
             </div>
@@ -97,7 +97,7 @@ export default function GiftCards() {
           </Card>
 
           <Card className="p-6 sm:p-8">
-            <h3 className="font-display text-lg font-bold">2. Informations de la carte</h3>
+            <h3 className="font-display text-lg font-semibold">2. Informations de la carte</h3>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <Field label="De la part de" required error={err('from')}>{inp('from', { placeholder: 'Votre prénom' })}</Field>
               <Field label="Votre e-mail" required error={err('email')}>{inp('email', { type: 'email', placeholder: 'vous@email.fr' })}</Field>
@@ -111,7 +111,7 @@ export default function GiftCards() {
           </Card>
 
           <Card className="p-6 sm:p-8">
-            <h3 className="font-display text-lg font-bold">3. Informations de facturation</h3>
+            <h3 className="font-display text-lg font-semibold">3. Informations de facturation</h3>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <Field label="Prénom" required error={err('firstName')}>{inp('firstName', { autoComplete: 'given-name' })}</Field>
               <Field label="Nom" required error={err('lastName')}>{inp('lastName', { autoComplete: 'family-name' })}</Field>
@@ -132,7 +132,7 @@ export default function GiftCards() {
           <Card className="space-y-5 p-6">
             <GiftCardVisual amount={amount} to={f.to || undefined} />
             <div className="flex justify-between text-sm"><span className="text-mute">Valable jusqu’au</span><span>{valid.toLocaleDateString('fr-FR')}</span></div>
-            <div className="flex justify-between border-t border-line pt-4 font-display text-xl font-bold"><span>Total (TTC)</span><span>{eur(amount)}</span></div>
+            <div className="flex justify-between border-t border-line pt-4 font-display text-xl font-semibold"><span>Total (TTC)</span><span>{eur(amount)}</span></div>
             <div className="flex gap-3 rounded-2xl bg-sun/10 p-4 text-sm text-white/85">
               <Banknote className="shrink-0 text-sun" size={20} />
               <span>Règlement en espèces uniquement. Nous vous recontactons pour organiser la remise, puis la carte est envoyée par e-mail.</span>
