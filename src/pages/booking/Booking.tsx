@@ -1,51 +1,52 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Check, Loader2, RotateCcw } from 'lucide-react'
-import { zoneForPostalCode } from '../../config'
+import { ArrowLeft, ArrowRight, CalendarPlus, Check, Loader2, RotateCcw } from 'lucide-react'
+import { SLOTS, zoneForPostalCode } from '../../config'
 import { pricing, useBooking, type BookingState } from '../../store/booking'
 import { Button, Card, Container } from '../../components/ui'
 import { isEmail, isPhone, SuccessPanel } from '../../components/form'
 import { cx, eur, longDate, makeRef, submit } from '../../lib/utils'
-import { AddressStep, buildSummary, ContactStep, Diet, earliestDate, FormulaStep, Kitchen, Options, People, Recipes, Schedule, Tastes, Validation } from './steps'
+import { buildSummary, CoordsStep, earliestDate, FormulaStep, Household, Recipes, Schedule, TastesKitchen, Validation } from './steps'
+import { ShoppingList } from '../../components/ShoppingList'
+import { buildIcs, downloadFile, visitDates } from '../../lib/calendar'
 
 type Step = { path: string; section: Section; render: (tried: boolean) => ReactNode; valid?: (s: BookingState) => boolean }
-type Section = 'Profil' | 'Formule' | 'Recettes' | 'Planification' | 'Adresse' | 'Validation'
+type Section = 'Profil' | 'Formule' | 'Menu' | 'Date' | 'Coordonnées' | 'Validation'
 
 const SECTIONS: { id: Section; sub: string }[] = [
-  { id: 'Profil', sub: 'Vos habitudes alimentaires' },
+  { id: 'Profil', sub: 'Foyer, régimes, envies' },
   { id: 'Formule', sub: 'Une semaine ou un mois' },
-  { id: 'Recettes', sub: 'Validez votre menu' },
-  { id: 'Planification', sub: 'Options, jour et créneau' },
-  { id: 'Adresse', sub: 'Où et qui' },
+  { id: 'Menu', sub: 'Vos plats, modifiables' },
+  { id: 'Date', sub: 'Jour et créneau' },
+  { id: 'Coordonnées', sub: 'Adresse et contact' },
   { id: 'Validation', sub: 'Paiement en espèces' },
 ]
 
+// 7 écrans (au lieu de 11) : les questions courtes sont regroupées.
 const STEPS: Step[] = [
-  { path: 'profil/personnes-a-table', section: 'Profil', render: () => <People /> },
-  { path: 'profil/regime-alimentaire', section: 'Profil', render: () => <Diet /> },
-  { path: 'profil/envies', section: 'Profil', render: () => <Tastes /> },
-  { path: 'profil/dans-votre-cuisine', section: 'Profil', render: () => <Kitchen /> },
+  { path: 'foyer', section: 'Profil', render: () => <Household /> },
+  { path: 'envies', section: 'Profil', render: () => <TastesKitchen /> },
   { path: 'formule', section: 'Formule', render: () => <FormulaStep /> },
-  { path: 'choix-recettes', section: 'Recettes', render: () => <Recipes />, valid: (s) => Object.values(s.menus).some((m) => m.length > 0) },
-  { path: 'planning/options', section: 'Planification', render: () => <Options /> },
+  { path: 'menu', section: 'Menu', render: () => <Recipes />, valid: (s) => Object.values(s.menus).some((m) => m.length > 0) },
   {
-    path: 'planning/date',
-    section: 'Planification',
+    path: 'date',
+    section: 'Date',
     render: () => <Schedule />,
     valid: (s) => !!s.startDate && !!s.slot && new Date(s.startDate + 'T12:00:00') >= earliestDate(),
   },
   {
-    path: 'adresse-prestation',
-    section: 'Adresse',
-    render: (t) => <AddressStep tried={t} />,
-    valid: (s) => !!s.address.street.trim() && !!zoneForPostalCode(s.address.cp) && !!s.address.city.trim() && isPhone(s.address.phone),
-  },
-  {
     path: 'coordonnees',
-    section: 'Adresse',
-    render: (t) => <ContactStep tried={t} />,
-    valid: (s) => !!s.address.firstName.trim() && !!s.address.lastName.trim() && isEmail(s.address.email),
+    section: 'Coordonnées',
+    render: (t) => <CoordsStep tried={t} />,
+    valid: (s) =>
+      !!s.address.street.trim() &&
+      !!zoneForPostalCode(s.address.cp) &&
+      !!s.address.city.trim() &&
+      isPhone(s.address.phone) &&
+      !!s.address.firstName.trim() &&
+      !!s.address.lastName.trim() &&
+      isEmail(s.address.email),
   },
   { path: 'validation', section: 'Validation', render: (t) => <Validation tried={t} />, valid: (s) => s.accepted },
 ]
@@ -65,6 +66,8 @@ export default function Booking() {
 
   useEffect(() => {
     setTried(false)
+    // mémorise l'étape pour proposer « Reprendre ma réservation » sur l'accueil
+    if (STEPS.some((st) => st.path === path) && useBooking.getState().lastStep !== path) useBooking.getState().set({ lastStep: path })
   }, [path])
 
   if (path === 'fin') {
@@ -90,10 +93,10 @@ export default function Booking() {
     const ref = makeRef('HC')
     const summary = buildSummary(s, ref)
     const sent = await submit('Réservation', ref, summary, {
-      formula: s.formula, dinners: s.dinners, options: s.options, startDate: s.startDate, slot: s.slot,
+      formula: s.formula, dinners: pricing(s).dinners, subscription: s.subscription, options: s.options, startDate: s.startDate, slot: s.slot,
       adults: s.adults, kids: s.kids, diets: s.diets, avoid: s.avoid, menus: s.menus, address: s.address, comment: s.comment, giftCode: s.giftCode,
     })
-    s.set({ confirmed: { ref, summary, sent } })
+    s.set({ confirmed: { ref, summary, sent }, lastStep: '' })
     setSending(false)
     nav('/reservation/fin')
   }
@@ -101,13 +104,13 @@ export default function Booking() {
   return (
     <Container className="pb-36 sm:pb-40">
       {/* barre de progression mobile */}
-      <div className="sticky top-[68px] z-30 -mx-4 mb-5 bg-ink/95 px-4 py-2.5 sm:top-[76px] lg:hidden">
+      <div className="sticky top-[calc(4.25rem+env(safe-area-inset-top))] z-30 -mx-4 mb-5 bg-ink/95 px-4 py-2.5 sm:top-[76px] lg:hidden">
         <div className="mb-1.5 flex justify-between text-xs text-mute">
           <span className="font-semibold text-white">{step.section}</span>
           <span>{idx + 1} / {STEPS.length}</span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
-          <motion.div className="h-full rounded-full bg-gradient-brand" animate={{ width: `${progress}%` }} />
+          <motion.div className="h-full rounded-full bg-heat" style={{ backgroundSize: `${(100 / Math.max(progress, 1)) * 100}% 100%` }} animate={{ width: `${progress}%` }} />
         </div>
       </div>
 
@@ -122,9 +125,9 @@ export default function Booking() {
                   key={sec.id}
                   disabled={!done}
                   onClick={() => nav(`/reservation/${STEPS.find((x) => x.section === sec.id)!.path}`)}
-                  className={cx('flex w-full items-center gap-3 rounded-2xl p-3 text-left transition', cur && 'glass', done && 'hover:bg-white/5')}
+                  className={cx('flex w-full items-center gap-3 rounded-2xl p-3 text-left transition', cur && 'bg-white/[0.06]', done && 'hover:bg-white/5')}
                 >
-                  <span className={cx('grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-bold', done ? 'bg-mint/20 text-mint' : cur ? 'bg-gradient-brand text-ink' : 'bg-white/5 text-mute')}>
+                  <span className={cx('grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-semibold', done ? 'bg-mint/20 text-mint' : cur ? 'bg-sun text-ink shadow-[0_0_18px_-4px_var(--color-coral)]' : 'bg-white/5 text-mute')}>
                     {done ? <Check size={15} /> : i + 1}
                   </span>
                   <span>
@@ -154,7 +157,7 @@ export default function Booking() {
 
       {/* barre d'action */}
       <div className="no-print fixed inset-x-0 bottom-0 z-40 border-t border-line bg-ink/95 px-3 pt-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))] sm:border-0 sm:bg-transparent sm:p-4">
-        <div className="mx-auto flex max-w-3xl items-center gap-3 sm:glass-blur sm:rounded-full sm:p-2 sm:shadow-[0_20px_60px_-10px_rgba(0,0,0,0.9)]">
+        <div className="mx-auto flex max-w-3xl items-center gap-3 sm:glass-blur sm:rounded-full sm:p-2 sm:shadow-[0_20px_60px_-10px_rgba(0,0,0,0.9)]" aria-label={`Étape ${idx + 1} sur ${STEPS.length}`}>
           <button
             onClick={() => (idx > 0 ? nav(`/reservation/${STEPS[idx - 1].path}`) : nav('/'))}
             className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white/5 hover:bg-white/10"
@@ -176,8 +179,8 @@ function MiniPrice() {
   const p = pricing(useBooking())
   return (
     <div className="min-w-0 leading-tight">
-      <div className="truncate font-display text-lg font-bold">{eur(p.weekly)}<span className="text-xs font-normal text-mute"> / sem.</span></div>
-      <div className="truncate text-xs text-mute">{p.f.name} · espèces</div>
+      <div className="truncate font-display text-lg font-semibold">{eur(p.weekly)}<span className="text-xs font-normal text-mute"> / sem.</span></div>
+      <div className="truncate text-xs text-mute">{p.f.name}, en espèces</div>
     </div>
   )
 }
@@ -187,8 +190,8 @@ function PriceBox() {
   const p = pricing(s)
   return (
     <Card className="p-6">
-      <div className="text-xs font-semibold tracking-widest text-mute uppercase">Ma réservation</div>
-      <div className="mt-2 font-display text-xl font-bold">{p.f.name}</div>
+      <div className="text-sm text-mute">Ma réservation</div>
+      <div className="mt-2 font-display text-xl font-semibold">{p.f.name}</div>
       <div className="mt-4 grid grid-cols-2 gap-2 text-center">
         <Stat n={p.dinners} l="dîners / sem." />
         <Stat n={s.adults + s.kids} l="personnes" />
@@ -202,18 +205,18 @@ function PriceBox() {
       </div>
       <div className="mt-4 flex items-end justify-between border-t border-line pt-4">
         <span className="text-sm text-mute">Par semaine</span>
-        <motion.span key={p.weekly} initial={{ scale: 1.15 }} animate={{ scale: 1 }} className="font-display text-3xl font-extrabold text-gradient">{eur(p.weekly)}</motion.span>
+        <motion.span key={p.weekly} initial={{ scale: 1.15 }} animate={{ scale: 1 }} className="font-display text-3xl font-semibold text-sun">{eur(p.weekly)}</motion.span>
       </div>
       {p.f.weeks > 1 && <div className="mt-1 text-right text-xs text-mute">Total {eur(p.total)} sur {p.f.weeks} semaines</div>}
-      {s.startDate && <div className="mt-4 rounded-xl bg-white/5 p-3 text-xs capitalize">📅 {longDate(s.startDate)}</div>}
-      <div className="mt-4 rounded-xl bg-sun/10 p-3 text-xs">💶 Réglé en espèces à la cheffe, à chaque venue. Courses non incluses.</div>
+      {s.startDate && <div className="mt-4 rounded-xl bg-white/5 p-3 text-xs first-letter:uppercase">{longDate(s.startDate)}</div>}
+      <div className="mt-4 rounded-xl bg-sun/10 p-3 text-xs">Réglé en espèces à la cheffe, à chaque venue. Courses non incluses.</div>
     </Card>
   )
 }
 
 const Stat = ({ n, l }: { n: ReactNode; l: string }) => (
   <div className="rounded-2xl bg-white/[0.04] p-3">
-    <div className="font-display text-lg font-bold">{n}</div>
+    <div className="font-display text-lg font-semibold">{n}</div>
     <div className="text-[11px] text-mute">{l}</div>
   </div>
 )
@@ -226,14 +229,27 @@ function Done() {
   const nav = useNavigate()
   const c = s.confirmed!
   const p = pricing(s)
+  const dates = visitDates(s.startDate, p.f.weeks)
+  const slot = SLOTS.find((x) => x.id === s.slot)
+  const where = `${s.address.street}${s.address.extra ? ', ' + s.address.extra : ''}, ${s.address.cp} ${s.address.city}`
+  const addToCalendar = () =>
+    downloadFile(`hannane-${c.ref}.ics`, buildIcs({ ref: c.ref, dates, slotId: s.slot, location: where, description: `Réservation ${c.ref}. ${p.f.name}. Prévoir ${eur(p.weekly)} en espèces.` }))
   return (
     <Container className="py-6">
-      <SuccessPanel title="Réservation enregistrée 🎉" refId={c.ref} summary={c.summary} subject={`Réservation ${c.ref}`} sent={c.sent}>
+      <SuccessPanel title="Réservation enregistrée" refId={c.ref} summary={c.summary} subject={`Réservation ${c.ref}`} sent={c.sent}>
         <p className="mt-4 text-mute">
-          Merci {s.address.firstName} ! Votre cheffe viendra {s.startDate && <b className="text-white">le {longDate(s.startDate)}</b>}. Prévoyez <b className="text-white">{eur(p.weekly)} en espèces</b> à chaque venue. Vous recevrez votre liste de courses avant la prestation.
+          Merci {s.address.firstName} ! Votre cheffe viendra {s.startDate && <b className="text-white">le {longDate(s.startDate)}</b>}{slot && <> ({slot.range})</>}. Prévoyez <b className="text-white">{eur(p.weekly)} en espèces</b> à chaque venue.
         </p>
         <p className="mt-2 text-sm text-mute">Report ou annulation gratuits jusqu’à 48 h avant, en rappelant votre numéro.</p>
+        <div className="no-print mt-6 flex flex-wrap justify-center gap-2">
+          <Button onClick={addToCalendar} size="sm"><CalendarPlus size={16} /> Ajouter {dates.length > 1 ? `les ${dates.length} venues` : 'la venue'} à mon agenda</Button>
+          <Button to="/mes-reservations" size="sm" variant="ghost">Mes réservations</Button>
+        </div>
       </SuccessPanel>
+      <Card className="mx-auto mt-6 max-w-2xl p-6 sm:p-8">
+        <h2 className="font-display text-xl font-semibold tracking-tight">Votre liste de courses</h2>
+        <div className="mt-4"><ShoppingList menus={s.menus} /></div>
+      </Card>
       <div className="mt-8 flex justify-center gap-3">
         <Button to="/" variant="ghost">Retour à l’accueil</Button>
         <Button onClick={() => { s.reset(); nav('/reservation') }} variant="soft">Nouvelle réservation</Button>

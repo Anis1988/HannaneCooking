@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Banknote, Check, ChevronLeft, ChevronRight, Loader2, MapPin, Minus, Plus, RefreshCw, Shuffle, Sparkles, X } from 'lucide-react'
+import { Banknote, Check, ChevronLeft, ChevronRight, Heart, Loader2, MapPin, Minus, Plus, RefreshCw, Shuffle, Sparkles, X } from 'lucide-react'
 import { AiAssistant } from '../../components/AiAssistant'
 import { AdviceCard } from './AdviceCard'
 import { askMenu } from '../../lib/ai'
@@ -10,6 +10,7 @@ import { MIN_NOTICE_HOURS, SITE, SLOTS, zoneForPostalCode } from '../../config'
 import { FORMULAS, OPTIONS, SUBSCRIPTIONS, getFormula } from '../../data/formulas'
 import { CUISINES, DIETS, EQUIPMENTS, RECIPES, isCompatible, proposeMenu, thumb, type Recipe } from '../../data/recipes'
 import { pricing, useBooking, type BookingState } from '../../store/booking'
+import { useFavs } from '../../store/favs'
 import { Card, Chip } from '../../components/ui'
 import { Field, isEmail, isPhone } from '../../components/form'
 import { cx, eur, longDate, toIso } from '../../lib/utils'
@@ -17,9 +18,19 @@ import { cx, eur, longDate, toIso } from '../../lib/utils'
 export function StepHead({ kicker, title, sub }: { kicker: string; title: string; sub?: string }) {
   return (
     <div className="mb-6 sm:mb-8">
-      <div className="text-xs font-semibold tracking-widest text-sun uppercase">{kicker}</div>
-      <h1 className="mt-2 font-display text-[1.75rem] leading-tight font-bold tracking-tight sm:text-4xl">{title}</h1>
-      {sub && <p className="mt-2 text-mute">{sub}</p>}
+      <div className="text-sm font-medium text-sun">{kicker}</div>
+      <h1 className="mt-2 font-display text-[1.65rem] leading-[1.1] font-semibold tracking-[-0.035em] sm:text-[2.4rem]">{title}</h1>
+      {sub && <p className="mt-2 max-w-[60ch] text-mute">{sub}</p>}
+    </div>
+  )
+}
+
+/** Sous-titre de section à l'intérieur d'une étape. */
+function SubHead({ title, sub }: { title: string; sub?: string }) {
+  return (
+    <div className="mt-10 mb-4">
+      <h2 className="font-display text-lg font-semibold tracking-tight sm:text-xl">{title}</h2>
+      {sub && <p className="mt-1 text-sm text-mute">{sub}</p>}
     </div>
   )
 }
@@ -36,19 +47,42 @@ function Counter({ label, sub, value, min, max, onChange, emoji }: { label: stri
       </div>
       <div className="flex items-center gap-3">
         <button onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min} className="glass grid h-10 w-10 place-items-center rounded-full disabled:opacity-30" aria-label={`Moins de ${label}`}><Minus size={16} /></button>
-        <motion.span key={value} initial={{ scale: 1.4, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-6 text-center font-display text-2xl font-bold">{value}</motion.span>
+        <motion.span key={value} initial={{ scale: 1.4, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-6 text-center font-display text-2xl font-semibold">{value}</motion.span>
         <button onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max} className="glass grid h-10 w-10 place-items-center rounded-full disabled:opacity-30" aria-label={`Plus de ${label}`}><Plus size={16} /></button>
       </div>
     </Card>
   )
 }
 
-export function People() {
+/** Étape 1 : qui mange, et ce qu'on évite. */
+export function Household() {
+  return (
+    <>
+      <StepHead kicker="Étape 1 sur 7" title="Qui mange, et qu’est-ce qu’on évite ?" sub="Pour vous proposer uniquement des plats qui conviennent à tout le monde." />
+      <People />
+      <SubHead title="Un régime particulier ?" sub="Facultatif. Les plats incompatibles sont écartés automatiquement." />
+      <Diet />
+    </>
+  )
+}
+
+/** Étape 2 : envies et équipement. */
+export function TastesKitchen() {
+  return (
+    <>
+      <StepHead kicker="Étape 2 sur 7" title="Vos envies et votre cuisine" sub="Pas de préférence ? Continuez, on varie les plaisirs." />
+      <Tastes />
+      <SubHead title="Dans votre cuisine" sub="Les recettes s’adaptent à votre équipement." />
+      <Kitchen />
+    </>
+  )
+}
+
+function People() {
   const { adults, kids, set } = useBooking()
   return (
     <>
-      <StepHead kicker="Question 1 sur 5" title="Combien de personnes seront à table ?" sub="Indiquez le nombre d’adultes et d’enfants qui mangeront les repas." />
-      <div className="space-y-4">
+      <div className="space-y-3">
         <Counter label="Adultes" sub="À partir de 16 ans" emoji="🧑" value={adults} min={1} max={6} onChange={(n) => set({ adults: n })} />
         <Counter label="Enfants" sub="Entre 2 et 15 ans" emoji="🧒" value={kids} min={0} max={5} onChange={(n) => set({ kids: n })} />
       </div>
@@ -63,7 +97,7 @@ export function People() {
   )
 }
 
-export function Diet() {
+function Diet() {
   const { diets, avoid, toggle, set } = useBooking()
   const [txt, setTxt] = useState('')
   const add = () => {
@@ -74,7 +108,6 @@ export function Diet() {
   const quick = ['Arachides', 'Fruits à coque', 'Crustacés', 'Poisson', 'Œuf', 'Champignons', 'Piment', 'Coriandre']
   return (
     <>
-      <StepHead kicker="Question 2 sur 5" title="Quel est votre régime alimentaire ?" sub="Indiquez vos préférences et allergies afin que nous vous proposions les recettes les plus adaptées." />
       <div className="grid gap-3 sm:grid-cols-2">
         {DIETS.map((d) => (
           <Chip key={d.id} active={diets.includes(d.id)} onClick={() => toggle('diets', d.id)} className="flex items-center gap-3">
@@ -83,7 +116,7 @@ export function Diet() {
           </Chip>
         ))}
       </div>
-      <h2 className="mt-10 font-display text-xl font-semibold">Y a-t-il des ingrédients à éviter ?</h2>
+      <h3 className="mt-6 text-sm font-medium">Des ingrédients à éviter ou des allergies ?</h3>
       <div className="mt-3 flex gap-2">
         <input className="field min-w-0" value={txt} onChange={(e) => setTxt(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && add()} placeholder="Ex. : coriandre, champignons…" />
         <button onClick={add} className="glass shrink-0 rounded-2xl px-5 font-semibold hover:bg-white/10">Ajouter</button>
@@ -107,29 +140,26 @@ export function Diet() {
   )
 }
 
-export function Tastes() {
+function Tastes() {
   const { cuisines, toggle } = useBooking()
   return (
     <>
-      <StepHead kicker="Question 3 sur 5" title="Quelles cuisines vous font envie ?" sub="Choisissez-en autant que vous voulez : nous en tiendrons compte pour composer votre menu." />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {CUISINES.map((c) => (
-          <Chip key={c.id} active={cuisines.includes(c.id)} onClick={() => toggle('cuisines', c.id)} className="!py-6 text-center">
-            <span className="block text-4xl">{c.emoji}</span>
-            <span className="mt-2 block">{c.label}</span>
+          <Chip key={c.id} active={cuisines.includes(c.id)} onClick={() => toggle('cuisines', c.id)} className="!py-4 text-center">
+            <span className="block text-3xl">{c.emoji}</span>
+            <span className="mt-1.5 block">{c.label}</span>
           </Chip>
         ))}
       </div>
-      <p className="mt-4 text-sm text-mute">Pas de préférence ? Passez à la suite, on varie les plaisirs.</p>
     </>
   )
 }
 
-export function Kitchen() {
+function Kitchen() {
   const { equipment, toggle } = useBooking()
   return (
     <>
-      <StepHead kicker="Question 4 sur 5" title="Qu’avez-vous dans votre cuisine ?" sub="Précisez vos équipements afin que les recettes soient adaptées." />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {EQUIPMENTS.map((e) => (
           <Chip key={e.id} active={equipment.includes(e.id)} onClick={() => toggle('equipment', e.id)} className="flex items-center gap-3 !py-4">
@@ -146,7 +176,7 @@ export function FormulaStep() {
   const { formula, dinners, subscription, set, aiAdvice } = useBooking()
   return (
     <>
-      <StepHead kicker="Question 5 sur 5" title="Quelle formule souhaitez-vous ?" sub="Testez le service une semaine, ou soufflez un mois entier." />
+      <StepHead kicker="Étape 3 sur 7" title="Votre formule" sub="Testez le service une semaine, ou soufflez un mois entier. Sans engagement." />
       <AdviceCard />
       <div className="space-y-4">
         {FORMULAS.map((f) => {
@@ -158,13 +188,13 @@ export function FormulaStep() {
                 <div className="flex gap-4">
                   <span className={cx('mt-1 grid h-6 w-6 shrink-0 place-items-center rounded-full border-2', active ? 'border-sun bg-sun text-ink' : 'border-white/30')}>{active && <Check size={14} />}</span>
                   <div>
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-xl font-bold">{f.name} {aiAdvice?.formula === f.id ? <span className="rounded-full bg-violet px-2 py-0.5 text-[10px] whitespace-nowrap text-white">✨ Conseillé par l’IA</span> : (f.badge && <span className="rounded-full bg-gradient-brand px-2 py-0.5 text-[10px] whitespace-nowrap text-ink">❤️ {f.badge}</span>)}</div>
-                    <ul className="mt-2 space-y-1 text-sm text-mute">{f.perks.map((p) => <li key={p}>· {p}</li>)}</ul>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-lg font-semibold tracking-tight sm:text-xl">{f.name} {aiAdvice?.formula === f.id ? <span className="rounded-full bg-violet px-2.5 py-0.5 font-sans text-xs font-medium whitespace-nowrap text-white">Conseillé par l’IA</span> : (f.badge && <span className="rounded-full bg-sun px-2.5 py-0.5 font-sans text-xs font-medium whitespace-nowrap text-ink">{f.badge}</span>)}</div>
+                    <ul className="mt-2 space-y-1 text-sm text-mute">{f.perks.map((p) => <li key={p}>{p}</li>)}</ul>
                   </div>
                 </div>
                 <div className="flex items-baseline gap-1.5 pl-10 sm:block sm:pl-0 sm:text-right">
                   <div className="text-xs text-mute">{f.dinners.length > 1 ? 'À partir de' : ''}</div>
-                  <div className="font-display text-3xl font-extrabold">{eur(Math.min(...Object.values(f.price)))}</div>
+                  <div className="font-display text-3xl font-semibold">{eur(Math.min(...Object.values(f.price)))}</div>
                   <div className="text-xs text-mute">par semaine</div>
                 </div>
               </div>
@@ -176,8 +206,8 @@ export function FormulaStep() {
                       <div className="grid grid-cols-3 gap-2">
                         {f.dinners.map((n) => (
                           <Chip key={n} active={dinners === n} onClick={() => set({ dinners: n })} className="text-center">
-                            <span className="block font-display text-xl font-bold">{n} dîners</span>
-                            <span className="block text-xs text-mute">{eur(f.price[n])} / sem.</span>
+                            <span className="block font-display text-2xl font-semibold">{n}</span>
+                            <span className="block text-xs text-mute">dîners, {eur(f.price[n])}</span>
                           </Chip>
                         ))}
                       </div>
@@ -198,6 +228,8 @@ export function FormulaStep() {
           )
         })}
       </div>
+      <SubHead title="Des options ?" sub="Facultatif, à ajouter à chaque venue." />
+      <Options />
     </>
   )
 }
@@ -261,8 +293,13 @@ export function Recipes() {
     const st = useBooking.getState()
     const menus: Record<number, string[]> = {}
     const notes: Record<string, string> = { ...st.aiNotes }
+    const valid = new Set(pool.map((x) => x.id))
+    const pinned = st.pinned.filter((id) => valid.has(id))
     r.weeks.forEach((wk, i) => {
-      if (wk.length) menus[i + 1] = wk.map((d) => d.id)
+      if (!wk.length) return
+      const ids = wk.map((d) => d.id)
+      // les plats demandés explicitement (fiche plat, favoris) restent dans la première semaine
+      menus[i + 1] = i === 0 && pinned.length ? [...new Set([...pinned, ...ids])].slice(0, ids.length) : ids
       for (const d of wk) if (d.why) notes[d.id] = d.why
     })
     if (Object.keys(menus).length) st.set({ menus: { ...st.menus, ...menus }, aiNotes: notes, aiMessage: r.message })
@@ -301,6 +338,15 @@ export function Recipes() {
     s.set({ menus: { ...s.menus, [w]: m } })
     setSwap(null)
   }
+  const favIds = useFavs((x) => x.ids)
+  const usableFavs = favIds.filter((id) => pool.some((r) => r.id === id))
+  const useFavorites = () => {
+    edited.current = true
+    const want = Math.min(dinners, pool.length)
+    const cur = s.menus[w] || []
+    const next = [...new Set([...usableFavs, ...cur])].slice(0, want)
+    s.set({ menus: { ...s.menus, [w]: next }, pinned: [...new Set([...usableFavs, ...s.pinned])].slice(0, 7) })
+  }
   const reshuffle = () => {
     edited.current = true
     const used = Object.entries(s.menus).filter(([k]) => Number(k) !== w).flatMap(([, v]) => v)
@@ -309,7 +355,7 @@ export function Recipes() {
 
   return (
     <>
-      <StepHead kicker="Choix des recettes" title="Votre menu est prêt ✨" sub={`Nous avons composé ${dinners} dîners selon votre profil. Changez ce que vous voulez.`} />
+      <StepHead kicker="Étape 4 sur 7" title="Votre menu est prêt" sub={`${dinners} dîners composés selon votre profil. Changez ce que vous voulez, plat par plat.`} />
       <div className="mb-6">
         {aiOpen ? (
           <AiAssistant
@@ -323,21 +369,21 @@ export function Recipes() {
             }}
           />
         ) : (
-          <button onClick={() => setAiOpen(true)} className="flex w-full items-center gap-3 rounded-3xl border border-violet/30 bg-[linear-gradient(135deg,rgba(139,123,255,0.14),rgba(255,93,115,0.08))] p-4 text-left transition hover:border-violet/60">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-brand text-ink"><Sparkles size={18} /></span>
+          <button onClick={() => setAiOpen(true)} className="flex w-full items-center gap-3 rounded-[22px] border border-violet/35 bg-[radial-gradient(120%_140%_at_0%_0%,rgba(123,92,255,0.2),transparent_60%)] p-4 text-left transition hover:border-violet/60">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-violet/20 text-[#c9bcff] ring-1 ring-violet/50"><Sparkles size={18} /></span>
             <span className="flex-1">
               <span className="block font-semibold">Affiner avec l’IA</span>
-              <span className="block text-sm text-mute">Vos envies, vos ingrédients, une photo du frigo : Claude s’occupe du menu.</span>
+              <span className="block text-sm text-mute">Vos envies (à l’écrit ou à la voix), vos ingrédients, une photo du frigo : l’IA ajuste le menu.</span>
             </span>
             <ChevronRight size={18} className="text-mute" />
           </button>
         )}
         {autoLoading ? (
           <p className="mt-3 flex items-center gap-2 rounded-2xl bg-violet/10 p-3 text-sm" aria-live="polite">
-            <Loader2 size={16} className="animate-spin text-violet" /> Claude compose votre menu sur mesure…
+            <Loader2 size={16} className="animate-spin text-[#b9a8ff]" /> L’IA compose votre menu sur mesure…
           </p>
         ) : (
-          s.aiMessage && !aiOpen && <p className="mt-3 rounded-2xl bg-violet/10 p-3 text-sm">✨ {s.aiMessage}</p>
+          s.aiMessage && !aiOpen && <p className="mt-3 rounded-2xl bg-violet/10 p-3 text-sm">{s.aiMessage}</p>
         )}
       </div>
       {pool.length < dinners && (
@@ -348,24 +394,29 @@ export function Recipes() {
           <div className="flex gap-1 overflow-x-auto rounded-full border border-line bg-white/[0.03] p-1">
             {Array.from({ length: f.weeks }, (_, i) => i + 1).map((n) => (
               <button key={n} onClick={() => setWeek(n)} className={cx('relative rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap', w === n ? 'text-ink' : 'text-white/70')}>
-                {w === n && <motion.span layoutId="week-pill" className="absolute inset-0 rounded-full bg-gradient-brand" />}
+                {w === n && <motion.span layoutId="week-pill" className="absolute inset-0 rounded-full bg-sun" />}
                 <span className="relative">Semaine {n}</span>
               </button>
             ))}
           </div>
         ) : <span />}
-        <button onClick={reshuffle} className="glass flex items-center gap-2 rounded-full px-4 py-2 text-sm hover:bg-white/10"><Shuffle size={16} /> Me proposer autre chose</button>
+        <div className="flex flex-wrap gap-2">
+          {!!usableFavs.length && (
+            <button onClick={useFavorites} className="flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm hover:bg-white/[0.07]"><Heart size={15} className="fill-coral text-coral" /> Mes favoris ({usableFavs.length})</button>
+          )}
+          <button onClick={reshuffle} className="flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm hover:bg-white/[0.07]"><Shuffle size={15} /> Autre proposition</button>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
           {menu.map((r, i) => (
-            <motion.div key={`${w}-${i}-${r.id}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: i * 0.04 }} className="glass group flex overflow-hidden rounded-3xl">
+            <motion.div key={`${w}-${i}-${r.id}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: i * 0.04 }} className="glass group flex overflow-hidden rounded-[22px]">
               <img src={thumb(r.img, 300)} alt="" loading="lazy" decoding="async" className="h-auto w-24 shrink-0 object-cover sm:w-32" />
               <div className="flex flex-1 flex-col p-4">
-                <span className="text-xs text-sun">Dîner {i + 1} · {r.tag}</span>
+                <span className="flex items-center gap-1.5 text-xs text-sun">Dîner {i + 1}{favIds.includes(r.id) && <Heart size={12} className="fill-coral text-coral" aria-label="Favori" />}</span>
                 <span className="mt-1 text-[15px] leading-snug font-semibold sm:text-base">{r.name}</span>
-                <span className="mt-1 text-xs text-mute">{CUISINES.find((c) => c.id === r.cuisine)?.label}{r.kids ? ' · Super kids' : ''}</span>
-                {s.aiNotes[r.id] && <span className="mt-1.5 text-xs leading-snug text-violet">✨ {s.aiNotes[r.id]}</span>}
+                <span className="mt-1 text-xs text-mute">{CUISINES.find((c) => c.id === r.cuisine)?.label}{r.kids ? ', super kids' : ''}, {r.minutes} min à réchauffer</span>
+                {s.aiNotes[r.id] && <span className="mt-1.5 text-xs leading-snug text-[#b9a8ff]">{s.aiNotes[r.id]}</span>}
                 <button onClick={() => setSwap(i)} className="mt-auto -ml-2 flex items-center gap-1.5 self-start rounded-full px-2 py-2 text-sm text-white/70 hover:bg-white/5 hover:text-white"><RefreshCw size={14} /> Changer</button>
               </div>
             </motion.div>
@@ -378,14 +429,15 @@ export function Recipes() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center" onClick={() => setSwap(null)}>
             <motion.div initial={{ y: 60 }} animate={{ y: 0 }} exit={{ y: 60 }} onClick={(e) => e.stopPropagation()} className="max-h-[85dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl border border-line bg-ink-2 p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:rounded-3xl sm:p-6">
               <div className="mb-4 flex items-center justify-between">
-                <h3 className="font-display text-xl font-bold">Remplacer le dîner {swap + 1}</h3>
+                <h3 className="font-display text-xl font-semibold tracking-tight">Remplacer le dîner {swap + 1}</h3>
                 <button onClick={() => setSwap(null)} className="glass grid h-9 w-9 place-items-center rounded-full" aria-label="Fermer"><X size={16} /></button>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                {pool.filter((r) => !(s.menus[w] || []).includes(r.id)).map((r) => (
+                {pool.filter((r) => !(s.menus[w] || []).includes(r.id)).sort((a, b) => Number(favIds.includes(b.id)) - Number(favIds.includes(a.id))).map((r) => (
                   <button key={r.id} onClick={() => replace(swap, r)} className="flex items-center gap-3 rounded-2xl border border-line p-2 text-left transition hover:border-sun/60 hover:bg-white/5">
                     <img src={thumb(r.img, 160)} alt="" loading="lazy" decoding="async" className="h-16 w-16 rounded-xl object-cover" />
-                    <span className="text-sm font-medium">{r.name}</span>
+                    <span className="flex-1 text-sm font-medium">{r.name}</span>
+                    {favIds.includes(r.id) && <Heart size={14} className="mr-1 shrink-0 fill-coral text-coral" aria-label="Favori" />}
                   </button>
                 ))}
               </div>
@@ -398,11 +450,10 @@ export function Recipes() {
   )
 }
 
-export function Options() {
+function Options() {
   const { options, toggle } = useBooking()
   return (
     <>
-      <StepHead kicker="Planification · étape 1 sur 2" title="🥐 Quelles options ?" sub="Sélectionnez autant d’options que vous le souhaitez." />
       <div className="space-y-3">
         {OPTIONS.map((o) => {
           const on = options.includes(o.id)
@@ -412,10 +463,10 @@ export function Options() {
               <span className="min-w-0 flex-1">
                 <span className="block font-semibold">{o.name}</span>
                 <span className="mt-0.5 block text-sm text-mute">{o.desc}</span>
-                <span className="mt-2 block font-display font-bold text-sun sm:hidden">+{eur(o.price)} <span className="font-sans text-xs font-normal text-mute">/ semaine</span></span>
+                <span className="mt-2 block font-display font-semibold text-sun sm:hidden">+{eur(o.price)} <span className="font-sans text-xs font-normal text-mute">/ semaine</span></span>
               </span>
               <span className="hidden text-right whitespace-nowrap sm:block">
-                <span className="block font-display font-bold">+{eur(o.price)}</span>
+                <span className="block font-display font-semibold">+{eur(o.price)}</span>
                 <span className="text-xs text-mute">/ semaine</span>
               </span>
               <span className={cx('grid h-6 w-6 shrink-0 place-items-center rounded-md border-2', on ? 'border-sun bg-sun text-ink' : 'border-white/30')}>{on && <Check size={14} />}</span>
@@ -467,7 +518,7 @@ export function Schedule() {
 
   return (
     <>
-      <StepHead kicker="Planification · étape 2 sur 2" title="📅 Quand vient votre cheffe ?" sub={`Choisissez le jour de la première venue (au moins ${MIN_NOTICE_HOURS} h à l’avance) et votre créneau.`} />
+      <StepHead kicker="Étape 5 sur 7" title="Quand vient votre cheffe ?" sub={`Le jour de la première venue (au moins ${MIN_NOTICE_HOURS} h à l’avance) et votre créneau.`} />
       <div className="grid gap-6 lg:grid-cols-[1fr_260px]">
         <Card className="p-5">
           <div className="mb-4 flex items-center justify-between">
@@ -492,7 +543,7 @@ export function Schedule() {
                     'aspect-square min-h-10 rounded-xl text-sm font-medium transition',
                     off && 'text-white/15',
                     !off && !sel && 'hover:bg-white/10',
-                    sel && 'bg-gradient-brand font-bold text-ink shadow-[0_0_20px_-4px_rgba(255,93,115,0.8)]',
+                    sel && 'bg-sun font-bold text-ink shadow-[0_0_24px_-4px_rgba(255,106,61,0.9)]',
                     inSeries && !sel && 'bg-sun/15 text-sun ring-1 ring-sun/40',
                   )}
                 >
@@ -516,20 +567,31 @@ export function Schedule() {
       {series.length > 1 && (
         <Card className="mt-6 p-5">
           <p className="text-sm font-medium">Vos {series.length} venues (même jour, même créneau)</p>
-          <div className="mt-3 flex flex-wrap gap-2">{series.map((d, i) => <span key={d} className="rounded-full bg-white/5 px-3 py-1 text-sm capitalize">S{i + 1} · {longDate(d)}</span>)}</div>
+          <div className="mt-3 flex flex-wrap gap-2">{series.map((d, i) => <span key={d} className="rounded-full bg-white/5 px-3 py-1 text-sm">S{i + 1}, {longDate(d)}</span>)}</div>
         </Card>
       )}
     </>
   )
 }
 
-export function AddressStep({ tried }: { tried: boolean }) {
+/** Étape 6 : adresse et coordonnées, sur un seul écran. */
+export function CoordsStep({ tried }: { tried: boolean }) {
+  return (
+    <>
+      <StepHead kicker="Étape 6 sur 7" title="Où, et qui êtes-vous ?" sub="Pas de compte à créer : juste de quoi organiser la venue et vous envoyer la confirmation." />
+      <AddressStep tried={tried} />
+      <SubHead title="Vos coordonnées" />
+      <ContactStep tried={tried} />
+    </>
+  )
+}
+
+function AddressStep({ tried }: { tried: boolean }) {
   const { address: a, setAddress } = useBooking()
   const zone = zoneForPostalCode(a.cp)
   const cpErr = a.cp.length === 5 && !zone
   return (
     <>
-      <StepHead kicker="Adresse · étape 1 sur 2" title="📍 Où aura lieu la prestation ?" sub="La prestation se déroule à votre domicile (résidence principale ou secondaire)." />
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <Field label="Adresse" required error={tried && !a.street.trim() ? 'Requis' : undefined}>
@@ -558,11 +620,10 @@ export function AddressStep({ tried }: { tried: boolean }) {
   )
 }
 
-export function ContactStep({ tried }: { tried: boolean }) {
+function ContactStep({ tried }: { tried: boolean }) {
   const { address: a, setAddress } = useBooking()
   return (
     <>
-      <StepHead kicker="Adresse · étape 2 sur 2" title="👋 Qui êtes-vous ?" sub="Pas de compte à créer : juste de quoi vous envoyer la confirmation." />
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Prénom" required error={tried && !a.firstName.trim() ? 'Requis' : undefined}>
           <input className="field" autoComplete="given-name" value={a.firstName} onChange={(e) => setAddress({ firstName: e.target.value })} />
@@ -591,12 +652,12 @@ export function Validation({ tried }: { tried: boolean }) {
   const slot = SLOTS.find((x) => x.id === s.slot)
   return (
     <>
-      <StepHead kicker="Validation" title="Confirmation & paiement" sub="Vérifiez votre réservation, puis confirmez." />
+      <StepHead kicker="Étape 7 sur 7" title="Vérifiez, puis confirmez" sub="Paiement en espèces à la cheffe, le jour de la venue. Rien à payer maintenant." />
       <Card glow className="flex items-start gap-4 p-6">
-        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-brand text-ink"><Banknote /></span>
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-sun text-ink"><Banknote /></span>
         <div className="flex-1">
           <div className="flex items-center justify-between gap-3">
-            <span className="font-display text-lg font-bold">Paiement en espèces</span>
+            <span className="font-display text-lg font-semibold">Paiement en espèces</span>
             <span className="grid h-6 w-6 place-items-center rounded-full bg-sun text-ink"><Check size={14} /></span>
           </div>
           <p className="mt-1 text-sm text-mute">
@@ -617,7 +678,7 @@ export function Validation({ tried }: { tried: boolean }) {
           `${p.f.weeks > 1 ? `1 fois par semaine, ${p.f.weeks} semaines` : '1 venue'}`,
         ]} />
         <Recap title="Adresse" lines={[`${s.address.firstName} ${s.address.lastName}`, s.address.street, `${s.address.cp} ${s.address.city}`, s.address.phone]} />
-        <Recap title="Menu" lines={Object.entries(s.menus).slice(0, 1).flatMap(([, ids]) => ids.map((id) => '· ' + (RECIPES.find((r) => r.id === id)?.name ?? '')))} more={p.f.weeks > 1 ? `+ ${p.f.weeks - 1} autre(s) semaine(s) composée(s)` : undefined} />
+        <Recap title={p.f.weeks > 1 ? 'Menu de la semaine 1' : 'Menu'} lines={Object.entries(s.menus).slice(0, 1).flatMap(([, ids]) => ids.map((id) => RECIPES.find((r) => r.id === id)?.name ?? ''))} more={p.f.weeks > 1 ? `+ ${p.f.weeks - 1} autre(s) semaine(s) composée(s)` : undefined} />
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -641,7 +702,7 @@ export function Validation({ tried }: { tried: boolean }) {
 function Recap({ title, lines, more }: { title: string; lines: string[]; more?: string }) {
   return (
     <Card className="p-5">
-      <div className="text-xs font-semibold tracking-widest text-mute uppercase">{title}</div>
+      <div className="text-sm text-mute">{title}</div>
       <div className="mt-2 space-y-0.5 text-sm">{lines.filter(Boolean).map((l, i) => <div key={i} className="first-letter:uppercase">{l}</div>)}</div>
       {more && <div className="mt-2 text-xs text-sun">{more}</div>}
     </Card>
@@ -674,7 +735,7 @@ export function buildSummary(s: BookingState, ref: string) {
     `👤 ${s.address.firstName} ${s.address.lastName} — ${s.address.phone} — ${s.address.email}`,
     `📍 ${s.address.street}${s.address.extra ? ', ' + s.address.extra : ''}, ${s.address.cp} ${s.address.city}`,
     s.address.access && `Accès : ${s.address.access}`,
-    s.aiWishes.trim() && `✨ Envies : ${s.aiWishes.trim()}`,
+    s.aiWishes.trim() && `💬 Envies : ${s.aiWishes.trim()}`,
     s.aiIngredients.length > 0 && `🥕 Ingrédients à utiliser : ${s.aiIngredients.join(', ')}`,
     s.comment && `💬 ${s.comment}`,
   ]

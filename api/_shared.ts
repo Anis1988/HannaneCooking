@@ -9,13 +9,14 @@ const WINDOW_MS = 10 * 60 * 1000
 const MAX_CALLS = 20
 const hits = new Map<string, number[]>()
 
-export function rateLimited(req: VercelRequest) {
+export function rateLimited(req: VercelRequest, bucket = 'ai', max = MAX_CALLS) {
   const ip = String(req.headers['x-forwarded-for'] ?? '').split(',')[0].trim() || 'local'
+  const key = `${bucket}:${ip}`
   const now = Date.now()
-  const recent = (hits.get(ip) ?? []).filter((t) => now - t < WINDOW_MS)
+  const recent = (hits.get(key) ?? []).filter((t) => now - t < WINDOW_MS)
   recent.push(now)
-  hits.set(ip, recent)
-  return recent.length > MAX_CALLS
+  hits.set(key, recent)
+  return recent.length > max
 }
 
 export const FORMULA_HINTS: Record<string, string> = {

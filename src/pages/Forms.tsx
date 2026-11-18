@@ -28,13 +28,13 @@ export function Contact() {
 
   return (
     <Container className="py-6 sm:py-10">
-      <SectionTitle eyebrow="On vous répond vite" title={<>Nous <span className="text-gradient">contacter</span></>} />
+      <SectionTitle level={1} title="Nous contacter" sub="Le plus rapide : WhatsApp. Sinon, laissez-nous un message ici." />
       <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
         <div className="space-y-4">
           <Card className="p-6"><a href={whatsappLink('Bonjour !')} target="_blank" rel="noreferrer" className="flex items-center gap-4"><MessageCircle className="text-[#25d366]" /> <span><b className="block">WhatsApp</b><span className="text-sm text-mute">Le plus rapide</span></span></a></Card>
           <Card className="p-6"><a href={`tel:${SITE.phone.replace(/\s/g, '')}`} className="flex items-center gap-4"><Phone className="text-sun" /> <span><b className="block">{SITE.phone}</b><span className="text-sm text-mute">Téléphone</span></span></a></Card>
           <Card className="p-6"><a href={`mailto:${SITE.email}`} className="flex items-center gap-4"><Mail className="text-coral" /> <span><b className="block break-all">{SITE.email}</b><span className="text-sm text-mute">E-mail</span></span></a></Card>
-          <Card className="p-6"><div className="flex items-center gap-4"><Clock className="text-violet" /> <span><b className="block">{SITE.hours}</b><span className="text-sm text-mute">{ZONES.map((z) => z.name).join(' · ')}</span></span></div></Card>
+          <Card className="p-6"><div className="flex items-center gap-4"><Clock className="text-violet" /> <span><b className="block">{SITE.hours}</b><span className="text-sm text-mute">{ZONES.map((z) => z.name).join(', ')}</span></span></div></Card>
         </div>
         <Card className="p-6 sm:p-8">
           <div className="mb-5 flex flex-wrap gap-2">
@@ -79,7 +79,7 @@ export function BecomeChef() {
 
   return (
     <Container className="py-6 sm:py-10">
-      <SectionTitle eyebrow="Rejoignez l’équipe ❤️‍🔥" title={<>Devenez <span className="text-gradient">cheffe partenaire</span></>} sub="Passionnée de cuisine, professionnelle ou amatrice ? Formez-vous au batch cooking à domicile et vivez de votre passion, à votre rythme." />
+      <SectionTitle level={1} title="Devenez cheffe partenaire" sub="Passionnée de cuisine, professionnelle ou amatrice ? Formez-vous au batch cooking à domicile et vivez de votre passion, à votre rythme." />
       <Card className="mx-auto max-w-3xl p-6 sm:p-8">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Prénom & nom" required error={tried ? errors.name || undefined : undefined}><input className="field" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>

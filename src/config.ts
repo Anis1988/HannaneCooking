@@ -35,8 +35,8 @@ export function zoneForPostalCode(cp: string): Zone | undefined {
 export const MIN_NOTICE_HOURS = 48
 
 export const SLOTS = [
-  { id: 'matin', label: 'Matin', range: '9h – 11h', emoji: '🌅' },
-  { id: 'midi', label: 'Midi', range: '11h – 13h', emoji: '☀️' },
-  { id: 'aprem', label: 'Après-midi', range: '14h – 16h', emoji: '🌤️' },
-  { id: 'soir', label: 'Fin de journée', range: '16h – 18h', emoji: '🌇' },
+  { id: 'matin', label: 'Matin', range: '9h – 11h', emoji: '🌅', start: 9, end: 11 },
+  { id: 'midi', label: 'Midi', range: '11h – 13h', emoji: '☀️', start: 11, end: 13 },
+  { id: 'aprem', label: 'Après-midi', range: '14h – 16h', emoji: '🌤️', start: 14, end: 16 },
+  { id: 'soir', label: 'Fin de journée', range: '16h – 18h', emoji: '🌇', start: 16, end: 18 },
 ] as const

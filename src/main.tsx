@@ -17,12 +17,18 @@ const Cgv = lazy(() => import('./pages/Legal').then((m) => ({ default: m.Cgv }))
 const Privacy = lazy(() => import('./pages/Legal').then((m) => ({ default: m.Privacy })))
 const NotFound = lazy(() => import('./pages/Legal').then((m) => ({ default: m.NotFound })))
 const Booking = lazy(() => import('./pages/booking/Booking'))
+const MyBookings = lazy(() => import('./pages/MyBookings'))
 
 // Préchargement discret après l'affichage : la navigation reste instantanée.
 const preload = () => {
-  for (const load of [() => import('./pages/booking/Booking'), () => import('./pages/Tarifs'), () => import('./pages/Menus'), () => import('./pages/GiftCards'), () => import('./pages/PostPartum'), () => import('./pages/Faq'), () => import('./pages/Forms'), () => import('./pages/Legal')]) load()
+  for (const load of [() => import('./pages/booking/Booking'), () => import('./pages/Tarifs'), () => import('./pages/Menus'), () => import('./pages/GiftCards'), () => import('./pages/PostPartum'), () => import('./pages/Faq'), () => import('./pages/Forms'), () => import('./pages/Legal'), () => import('./pages/MyBookings')]) load()
 }
 window.addEventListener('load', () => setTimeout(preload, 1200), { once: true })
+
+// Application installable (PWA) : le service worker ne tourne qu'en production.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}), { once: true })
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -40,6 +46,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="cgv" element={<Cgv />} />
           <Route path="confidentialite" element={<Privacy />} />
           <Route path="reservation/*" element={<Booking />} />
+          <Route path="mes-reservations" element={<MyBookings />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
