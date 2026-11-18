@@ -58,7 +58,8 @@ function flatten(o: unknown, prefix = ''): Record<string, string> {
 /** Partage natif (mobile) ou copie du lien. */
 export async function share(data: { title: string; text?: string; url?: string }): Promise<'shared' | 'copied' | 'failed'> {
   try {
-    if ('share' in navigator) {
+    const canShare = typeof navigator.share === 'function'
+    if (canShare) {
       await navigator.share(data)
       return 'shared'
     }
