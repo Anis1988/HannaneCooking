@@ -148,7 +148,7 @@ function Price({ onBook }: { onBook: () => void }) {
               <p className="mt-2 text-mute">{f.pitch}</p>
               <div className="mt-6 flex items-end gap-2">
                 <span className="font-display text-[3rem] leading-none font-semibold tracking-[-0.04em] sm:text-6xl">{eur(weekly)}</span>
-                <span className="pb-1 text-mute">/ semaine</span>
+                <span className="pb-1 whitespace-nowrap text-mute">/ semaine</span>
               </div>
               <p className="mt-3 text-white/85">
                 Soit <span className="font-semibold text-sun">{eur(weekly / d)}</span> le dîner pour toute la famille.

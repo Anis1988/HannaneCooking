@@ -58,7 +58,7 @@ export function PricingCards({ only }: { only?: FormulaId[] }) {
 
               <div className="mt-6 flex items-end gap-2">
                 <span className="font-display text-[2.8rem] leading-none font-semibold tracking-[-0.04em]">{eur(price)}</span>
-                <span className="pb-1 text-mute">/ semaine</span>
+                <span className="pb-1 whitespace-nowrap text-mute">/ semaine</span>
               </div>
               <p className="mt-2 text-sm text-white/80">
                 Soit <span className="font-semibold text-sun">{eur(price / d)}</span> le dîner pour toute la famille
